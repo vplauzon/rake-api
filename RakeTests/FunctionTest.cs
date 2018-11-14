@@ -1,6 +1,8 @@
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using RakeLib;
 using System.IO;
 using System.Reflection;
+using YamlDotNet.Serialization;
 
 namespace RakeTests
 {
@@ -10,8 +12,8 @@ namespace RakeTests
         [TestMethod]
         public void SimpleXPath()
         {
-            var w = GetResource("simple-web.html");
-            var f = GetResource("simple-xpath.yaml");
+            var content = GetResource("simple-web.html");
+            var function = GetFunctionDescription("simple-xpath.yaml");
         }
 
         private string GetResource(string resourceName)
@@ -27,6 +29,16 @@ namespace RakeTests
 
                 return text;
             }
+        }
+
+        private FunctionDescription GetFunctionDescription(string resourceName)
+        {
+            var content = GetResource(resourceName);
+            //DeserializerBuilder
+            var deserializer = new Deserializer();
+            var function = deserializer.Deserialize<FunctionDescription>(content);
+
+            return function;
         }
     }
 }
