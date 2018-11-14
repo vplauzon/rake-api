@@ -7,7 +7,7 @@ namespace RakeLib
 {
     public class Function
     {
-        public ImmutableArray<string> Inputs { get; set; }
+        public ImmutableArray<object> Inputs { get; set; }
 
         public ImmutableArray<Variable> Variables { get; set; }
 

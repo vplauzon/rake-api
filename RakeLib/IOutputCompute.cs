@@ -7,6 +7,6 @@ namespace RakeLib
 {
     public interface IOutputCompute
     {
-        Task<string> ComputeAsync(ComputeContext context);
+        Task<object> ComputeAsync(ComputeContext context);
     }
 }

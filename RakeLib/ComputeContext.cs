@@ -8,45 +8,45 @@ namespace RakeLib
 {
     public class ComputeContext
     {
-        private readonly ImmutableDictionary<string, string> _variables;
+        private readonly ImmutableDictionary<string, object> _variables;
 
         #region Constructors
-        public ComputeContext(IDictionary<string, string> inputs)
+        public ComputeContext(IDictionary<string, object> inputs)
             : this(
                   NormalizeInputs(inputs),
-                  ImmutableDictionary<string, string>.Empty)
+                  ImmutableDictionary<string, object>.Empty)
         {
         }
 
         private ComputeContext(
-            IImmutableDictionary<string, string> inputs,
-            ImmutableDictionary<string, string> variables)
+            IImmutableDictionary<string, object> inputs,
+            ImmutableDictionary<string, object> variables)
         {
             Inputs = inputs;
             _variables = variables;
         }
 
-        private static IImmutableDictionary<string, string> NormalizeInputs(
-            IDictionary<string, string> inputs)
+        private static IImmutableDictionary<string, object> NormalizeInputs(
+            IDictionary<string, object> inputs)
         {
             if (inputs == null)
             {
                 throw new ArgumentNullException(nameof(inputs));
             }
 
-            return ImmutableDictionary<string, string>.Empty.AddRange(inputs);
+            return ImmutableDictionary<string, object>.Empty.AddRange(inputs);
         }
         #endregion
 
-        public IImmutableDictionary<string, string> Inputs { get; private set; }
+        public IImmutableDictionary<string, object> Inputs { get; private set; }
 
-        internal ComputeContext AddVariable(string name, string value)
+        internal ComputeContext AddVariable(string name, object value)
         {
             if (string.IsNullOrWhiteSpace(name))
             {
                 throw new ArgumentNullException(nameof(name));
             }
-            if (string.IsNullOrWhiteSpace(value))
+            if (value == null)
             {
                 throw new ArgumentNullException(nameof(value));
             }
@@ -54,7 +54,7 @@ namespace RakeLib
             return new ComputeContext(Inputs, _variables.Add(name, value));
         }
 
-        public string GetVariable(string name)
+        public object GetVariable(string name)
         {
             if (string.IsNullOrWhiteSpace(name))
             {
