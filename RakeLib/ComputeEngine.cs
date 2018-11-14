@@ -11,17 +11,43 @@ namespace RakeLib
     {
         public ComputeEngine(Quotas quotas)
         {
+            if (quotas == null)
+            {
+                throw new ArgumentNullException(nameof(quotas));
+            }
         }
 
-        public async Task<IDictionary<string, string>> ComputeAsync(
+        public async Task<IImmutableDictionary<string, string>> ComputeAsync(
             IDictionary<string, string> inputs,
             Function function)
         {
+            if (inputs == null)
+            {
+                throw new ArgumentNullException(nameof(inputs));
+            }
+            if (function == null)
+            {
+                throw new ArgumentNullException(nameof(function));
+            }
             ValidateInputs(inputs, function.Inputs);
 
-            await Task.CompletedTask;
+            var context = new ComputeContext(inputs);
+            var outputs = ImmutableDictionary<string, string>.Empty;
 
-            throw new NotImplementedException();
+            foreach (var variable in function.Variables)
+            {
+                var value = await variable.Compute.ComputeAsync(context);
+
+                context = context.AddVariable(variable.Name, value);
+            }
+            foreach(var output in function.Outputs)
+            {
+                var value = await output.Value.ComputeAsync(context);
+
+                outputs.Add(output.Key, value);
+            }
+
+            return outputs;
         }
 
         private void ValidateInputs(
