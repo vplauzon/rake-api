@@ -10,6 +10,6 @@ namespace RakeLib
 
         public VariableDescription[] Variables { get; set; }
 
-        public IDictionary<string, Func<int, Task<string>>> Outputs { get; set; }
+        public IDictionary<string, IOutputCompute> Outputs { get; set; }
     }
 }
