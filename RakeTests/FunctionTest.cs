@@ -13,7 +13,7 @@ namespace RakeTests
         public void SimpleXPath()
         {
             var content = GetResource("simple-web.html");
-            var function = GetFunctionDescription("simple-xpath.yaml");
+            var description = GetFunctionDescription("simple-xpath.yaml");
         }
 
         private string GetResource(string resourceName)
