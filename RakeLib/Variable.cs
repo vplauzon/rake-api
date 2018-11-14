@@ -9,6 +9,6 @@ namespace RakeLib
     {
         public string Name { get; set; }
 
-        public IOutputCompute Description { get; set; }
+        public IOutputCompute Compute { get; set; }
     }
 }
