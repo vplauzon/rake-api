@@ -5,4 +5,8 @@
     <RootNamespace>RakeLib</RootNamespace>
   </PropertyGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\RakeApi\RakeApi.csproj" />
+  </ItemGroup>
+
 </Project>

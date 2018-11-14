@@ -13,4 +13,8 @@
     <PackageReference Include="YamlDotNet.NetCore" Version="1.0.0" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\RakeLib\RakeLib.csproj" />
+  </ItemGroup>
+
 </Project>
