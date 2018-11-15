@@ -14,6 +14,7 @@ namespace RakeTests
         {
             var content = GetResource("simple-web.html");
             var description = GetFunctionDescription("simple-xpath.yaml");
+            var compiler = new FunctionCompiler();
         }
 
         private string GetResource(string resourceName)
