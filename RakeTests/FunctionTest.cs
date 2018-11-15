@@ -3,6 +3,7 @@ using RakeLib;
 using System.IO;
 using System.Reflection;
 using YamlDotNet.Serialization;
+using YamlDotNet.Serialization.NamingConventions;
 
 namespace RakeTests
 {
@@ -35,8 +36,9 @@ namespace RakeTests
         private FunctionDescription GetFunctionDescription(string resourceName)
         {
             var content = GetResource(resourceName);
-            //DeserializerBuilder
-            var deserializer = new Deserializer();
+            var deserializer = new DeserializerBuilder()
+                .WithNamingConvention(new CamelCaseNamingConvention())
+                .Build();
             var function = deserializer.Deserialize<FunctionDescription>(content);
 
             return function;

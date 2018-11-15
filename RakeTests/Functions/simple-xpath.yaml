@@ -1,4 +1,4 @@
-﻿Inputs:
+﻿inputs:
   - url
-Outputs:
+outputs:
   article:  //div
