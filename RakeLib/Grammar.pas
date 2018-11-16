@@ -16,12 +16,17 @@ rule(interleave=false, children=false) underscore = "_";
 rule(interleave=false, children=false) identifier = (letter | underscore) (letter | underscore | integer)*;
 
 #	Objects
-rule nonEmptyParameterList = h:expression t:("," e:expression)*;
-rule parameterList = n:nonEmptyParameterList | "";
-rule bacedParameterList = "(" l:parameterList ")";
-rule method = e:expression "." m:identifier l:bacedParameterList?;
+rule parameterList = "(" h:expression t:("," e:expression)* ")";
+rule methodWithParameters = e:expression "." m:identifier l:parameterList;
+rule methodWithoutParameters = e:expression "." m:identifier "(" ")";
+rule property = e:expression "." m:identifier;
 
 #	Expression
-rule(recursive=true) expression = integer | quotedString | identifier | method;
+rule(recursive=true) expression = integer
+	| quotedString
+	| identifier
+	| property
+	| methodWithoutParameters
+	| methodWithParameters;
 
 rule main = expression;
