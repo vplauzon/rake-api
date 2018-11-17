@@ -7,7 +7,7 @@ namespace RakeLib
 {
     public class FunctionCompiler
     {
-        public async Task<Function> CompileAsync(FunctionDescription description)
+        public async Task<ExecutableFunction> CompileAsync(FunctionDescription description)
         {
             await Task.CompletedTask;
 

@@ -1,16 +1,16 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
-using System.Threading.Tasks;
 
 namespace RakeLib
 {
-    public class Function
+    public class Function<T>
     {
-        public ImmutableArray<object> Inputs { get; set; }
+        public string ApiVersion { get; set; }
 
-        public ImmutableArray<Variable> Variables { get; set; }
+        public string[] Inputs { get; set; }
 
-        public IImmutableDictionary<string, IOutputCompute> Outputs { get; set; }
+        public Variable<T>[] Variables { get; set; }
+
+        public IDictionary<string, T> Outputs { get; set; }
     }
 }

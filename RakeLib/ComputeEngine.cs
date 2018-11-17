@@ -18,8 +18,8 @@ namespace RakeLib
         }
 
         public async Task<IImmutableDictionary<string, object>> ComputeAsync(
-            IDictionary<string, object> inputs,
-            Function function)
+            IDictionary<string, string> inputs,
+            ExecutableFunction function)
         {
             if (inputs == null)
             {
@@ -51,10 +51,10 @@ namespace RakeLib
         }
 
         private void ValidateInputs(
-            IDictionary<string, object> inputs,
-            ImmutableArray<object> functionInputs)
+            IDictionary<string, string> providedInputs,
+            IImmutableList<string> functionInputs)
         {
-            var overSpec = Enumerable.Except(inputs.Keys, functionInputs);
+            var overSpec = Enumerable.Except(providedInputs.Keys, functionInputs);
 
             if (overSpec.Any())
             {
@@ -64,7 +64,7 @@ namespace RakeLib
             }
             else
             {
-                var underSpec = Enumerable.Except(functionInputs, inputs.Keys);
+                var underSpec = Enumerable.Except(functionInputs, providedInputs.Keys);
 
                 if (underSpec.Any())
                 {

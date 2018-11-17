@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -11,7 +12,7 @@ namespace RakeLib
         private readonly ImmutableDictionary<string, object> _variables;
 
         #region Constructors
-        public ComputeContext(IDictionary<string, object> inputs)
+        public ComputeContext(IDictionary<string, string> inputs)
             : this(
                   NormalizeInputs(inputs),
                   ImmutableDictionary<string, object>.Empty)
@@ -27,14 +28,17 @@ namespace RakeLib
         }
 
         private static IImmutableDictionary<string, object> NormalizeInputs(
-            IDictionary<string, object> inputs)
+            IDictionary<string, string> inputs)
         {
             if (inputs == null)
             {
                 throw new ArgumentNullException(nameof(inputs));
             }
 
-            return ImmutableDictionary<string, object>.Empty.AddRange(inputs);
+            var objectInputs = from i in inputs
+                               select new KeyValuePair<string, object>(i.Key, i.Value);
+
+            return ImmutableDictionary<string, object>.Empty.AddRange(objectInputs);
         }
         #endregion
 
