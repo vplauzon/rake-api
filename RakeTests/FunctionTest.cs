@@ -1,7 +1,9 @@
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using RakeLib;
+using System;
 using System.IO;
 using System.Reflection;
+using System.Threading.Tasks;
 using YamlDotNet.Serialization;
 using YamlDotNet.Serialization.NamingConventions;
 
@@ -11,14 +13,13 @@ namespace RakeTests
     public class FunctionTest
     {
         [TestMethod]
-        public void SimpleXPath()
+        public async Task SimpleXPath()
         {
-            var content = GetResource("simple-web.html");
-            var description = GetFunctionDescription("simple-xpath.yaml");
-            var compiler = new FunctionCompiler();
+            var content = GetResourceAsync("simple-web.html");
+            var function = await GetExecutableFunctionAsync("simple-xpath.yaml");
         }
 
-        private string GetResource(string resourceName)
+        private async Task<string> GetResourceAsync(string resourceName)
         {
             var type = this.GetType();
             var assembly = type.GetTypeInfo().Assembly;
@@ -27,21 +28,32 @@ namespace RakeTests
             using (var stream = assembly.GetManifestResourceStream(fullResourceName))
             using (var reader = new StreamReader(stream))
             {
-                var text = reader.ReadToEnd();
+                var text = await reader.ReadToEndAsync();
 
                 return text;
             }
         }
 
-        private FunctionDescription GetFunctionDescription(string resourceName)
+        private async Task<FunctionDescription> GetFunctionDescriptionAsync(string resourceName)
         {
-            var content = GetResource(resourceName);
+            var content = await GetResourceAsync(resourceName);
             var deserializer = new DeserializerBuilder()
                 .WithNamingConvention(new CamelCaseNamingConvention())
                 .Build();
             var function = deserializer.Deserialize<FunctionDescription>(content);
 
             return function;
+        }
+
+        private async Task<ExecutableFunction> GetExecutableFunctionAsync(string resourceName)
+        {
+            var description = await GetFunctionDescriptionAsync(resourceName);
+            var compiler = new FunctionCompiler();
+            var maker = new FunctionMaker();
+            var compiled = await compiler.CompileAsync(description);
+            var executable = maker.Make(compiled);
+
+            return executable;
         }
     }
 }
