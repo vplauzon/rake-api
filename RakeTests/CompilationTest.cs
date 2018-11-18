@@ -118,5 +118,38 @@ namespace RakeTests
             Assert.AreEqual(chain[3], compute.MethodInvoke.Next.Next.Next.Name, "Next.Next.Next");
         }
         #endregion
+
+        #region Methods with parameters
+        [TestMethod]
+        public async Task MethodWithOneParameter()
+        {
+            var compiler = new Compiler();
+            var compute = await compiler.CompileExpressionAsync("3.myMethod( 4  )");
+
+            Assert.IsNotNull(compute);
+            Assert.AreEqual(3, compute.Reference.Integer, "Integer");
+            Assert.IsFalse(compute.MethodInvoke.IsProperty, "IsProperty");
+            Assert.AreEqual("myMethod", compute.MethodInvoke.Name, "Name");
+            Assert.AreEqual(1, compute.MethodInvoke.Parameters.Length, "Parameters");
+            Assert.AreEqual(4, compute.MethodInvoke.Parameters[0].Reference.Integer, "Parameters-0");
+            Assert.IsNull(compute.MethodInvoke.Next, "Next");
+        }
+
+        [TestMethod]
+        public async Task MethodWithTwoParameters()
+        {
+            var compiler = new Compiler();
+            var compute = await compiler.CompileExpressionAsync("3.myMethod( 4 ,  \"hello\")");
+
+            Assert.IsNotNull(compute);
+            Assert.AreEqual(3, compute.Reference.Integer, "Integer");
+            Assert.IsFalse(compute.MethodInvoke.IsProperty, "IsProperty");
+            Assert.AreEqual("myMethod", compute.MethodInvoke.Name, "Name");
+            Assert.AreEqual(2, compute.MethodInvoke.Parameters.Length, "Parameters");
+            Assert.AreEqual(4, compute.MethodInvoke.Parameters[0].Reference.Integer, "Parameters-0");
+            Assert.AreEqual("hello", compute.MethodInvoke.Parameters[1].Reference.QuotedString, "Parameters-1");
+            Assert.IsNull(compute.MethodInvoke.Next, "Next");
+        }
+        #endregion
     }
 }

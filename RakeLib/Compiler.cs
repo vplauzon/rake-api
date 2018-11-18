@@ -128,7 +128,23 @@ namespace RakeLib
             }
             else
             {
-                throw new NotImplementedException();
+                var parameterList = genericParameterList.NamedChildren["paramList"];
+                var head = parameterList.NamedChildren["head"];
+                var tail = parameterList.NamedChildren["tail"];
+                var headExpression = BuildExpression(head);
+
+                if (tail.Children != null)
+                {
+                    var tailExpressions = from match in tail.Children
+                                          select BuildExpression(match.NamedChildren["e"]);
+                    var parameters = tailExpressions.Prepend(headExpression).ToArray();
+
+                    return parameters;
+                }
+                else
+                {
+                    return new[] { headExpression };
+                }
             }
         }
 
