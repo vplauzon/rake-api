@@ -41,9 +41,75 @@ namespace RakeLib
 
         public async Task<CompiledFunction> CompileFunctionAsync(FunctionDescription description)
         {
-            await Task.CompletedTask;
+            if (string.IsNullOrWhiteSpace(description.ApiVersion))
+            {
+                throw new ArgumentNullException(nameof(description.ApiVersion));
+            }
+            if (description.Inputs == null)
+            {
+                throw new ArgumentNullException(nameof(description.Inputs));
+            }
+            if (description.Variables == null)
+            {
+                throw new ArgumentNullException(nameof(description.Variables));
+            }
+            if (description.Outputs == null)
+            {
+                throw new ArgumentNullException(nameof(description.Outputs));
+            }
 
-            throw new NotImplementedException();
+            var variableDescriptions = from v in description.Variables
+                                       select v.Description;
+            var outputDescriptions = from o in description.Outputs
+                                     select o.Value;
+            var descriptions = variableDescriptions.Concat(outputDescriptions);
+            var results = await _parserClient.MultipleParseAsync(_grammar, "expression", descriptions);
+            var variableResults = results.Take(variableDescriptions.Count());
+            var outputResults = results.Skip(variableDescriptions.Count());
+            var namedVariableResults = description.Variables.Zip(
+                variableResults,
+                (v, r) => KeyValuePair.Create(v.Name, r));
+            var namedOutputResults = description.Outputs.Zip(
+                outputResults,
+                (o, r) => KeyValuePair.Create(o.Key, r));
+
+            ValidateCompilation(namedVariableResults, "Variable");
+            ValidateCompilation(namedOutputResults, "Output");
+
+            var variables = from v in namedVariableResults
+                            select new Variable<CompiledCompute>
+                            {
+                                Name = v.Key,
+                                Description = BuildExpression(v.Value.RuleMatch)
+                            };
+            var outputs = from o in namedOutputResults
+                          select KeyValuePair.Create(
+                              o.Key,
+                              BuildExpression(o.Value.RuleMatch));
+
+            return new CompiledFunction
+            {
+                ApiVersion = description.ApiVersion,
+                Inputs = description.Inputs,
+                Variables = variables.ToArray(),
+                Outputs = new Dictionary<string, CompiledCompute>(outputs)
+            };
+        }
+
+        private void ValidateCompilation(
+            IEnumerable<KeyValuePair<string, ParsingResult>> namedResults,
+            string resultType)
+        {
+            foreach (var r in namedResults)
+            {
+                var name = r.Key;
+                var result = r.Value;
+
+                if (!result.IsMatch)
+                {
+                    throw new ComputeException($"{resultType} '{name}' can't be compiled");
+                }
+            }
         }
 
         private static string GetResource(string resourceName)
