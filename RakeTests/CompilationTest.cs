@@ -13,7 +13,46 @@ namespace RakeTests
     public class CompilationTest
     {
         [TestMethod]
-        public async Task SimpleXPath()
+        public async Task Integer()
+        {
+            var compiler = new Compiler();
+            var compute = await compiler.CompileExpressionAsync("42");
+
+            Assert.IsNotNull(compute);
+            Assert.AreEqual(42, compute.Integer, "Integer");
+            Assert.IsNull(compute.Identifier, "Identifier");
+            Assert.IsNull(compute.QuotedString, "QuotedString");
+            Assert.IsNull(compute.MethodInvoke, "MethodInvoke");
+        }
+
+        [TestMethod]
+        public async Task QuotedString()
+        {
+            var compiler = new Compiler();
+            var compute = await compiler.CompileExpressionAsync("\"my text\"");
+
+            Assert.IsNotNull(compute);
+            Assert.AreEqual("my text", compute.QuotedString, "QuotedString");
+            Assert.IsNull(compute.Integer, "Integer");
+            Assert.IsNull(compute.Identifier, "Identifier");
+            Assert.IsNull(compute.MethodInvoke, "MethodInvoke");
+        }
+
+        [TestMethod]
+        public async Task Identifier()
+        {
+            var compiler = new Compiler();
+            var compute = await compiler.CompileExpressionAsync("input");
+
+            Assert.IsNotNull(compute);
+            Assert.AreEqual("input", compute.Identifier, "Identifier");
+            Assert.IsNull(compute.Integer, "Integer");
+            Assert.IsNull(compute.QuotedString, "QuotedString");
+            Assert.IsNull(compute.MethodInvoke, "MethodInvoke");
+        }
+
+        //[TestMethod]
+        public async Task Property()
         {
             var compiler = new Compiler();
             var compute = await compiler.CompileExpressionAsync("input.myproperty");

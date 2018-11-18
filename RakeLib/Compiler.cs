@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
@@ -26,10 +27,9 @@ namespace RakeLib
         {
             var result = await _parserClient.SingleParseAsync(_grammar, "expression", expression);
 
-            if(result.IsMatch)
+            if (result.IsMatch)
             {
-                //result.RuleMatch.NamedChildren
-                throw new NotImplementedException();
+                return BuildExpression(result.RuleMatch);
             }
             else
             {
@@ -56,6 +56,32 @@ namespace RakeLib
                 var text = reader.ReadToEnd();
 
                 return text;
+            }
+        }
+
+        private CompiledCompute BuildExpression(RuleMatchResult ruleMatch)
+        {
+            var expression = BuildReference(ruleMatch.NamedChildren["ref"]);
+
+            return expression;
+        }
+
+        private CompiledCompute BuildReference(RuleMatchResult ruleMatch)
+        {
+            var child = ruleMatch.NamedChildren.First();
+            var refType = child.Key;
+            var reference = child.Value;
+
+            switch (refType)
+            {
+                case "int":
+                    return new CompiledCompute { Integer = int.Parse(reference.Text) };
+                case "string":
+                    return new CompiledCompute { QuotedString = reference.NamedChildren["s"].Text };
+                case "id":
+                    return new CompiledCompute { Identifier = reference.Text };
+                default:
+                    throw new NotSupportedException($"Reference '{refType}'");
             }
         }
     }
