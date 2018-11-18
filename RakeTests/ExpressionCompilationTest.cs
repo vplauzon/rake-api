@@ -10,7 +10,7 @@ using YamlDotNet.Serialization.NamingConventions;
 namespace RakeTests
 {
     [TestClass]
-    public class CompilationTest
+    public class ExpressionCompilationTest
     {
         #region References
         [TestMethod]
