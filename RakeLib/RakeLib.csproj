@@ -24,7 +24,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="PasApiClient" Version="0.1.376-alpha" />
+    <PackageReference Include="PasApiClient" Version="0.2.379-alpha" />
   </ItemGroup>
 
   <ItemGroup>

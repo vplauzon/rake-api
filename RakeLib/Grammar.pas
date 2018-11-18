@@ -17,13 +17,13 @@ rule(interleave=false, children=false) identifier = (letter | underscore) (lette
 
 #	A reference is something that can readily be referenced
 #	Either a value or a variable reference
-rule reference = integer | quotedString | identifier;
-rule parameterList = "(" h:expression t:("," e:expression)* ")";
+rule reference = int:integer | string:quotedString | id:identifier;
+rule parameterList = "(" head:expression tail:("," e:expression)* ")";
 rule emptyParameterList = "(" ")";
-rule genericParameterList = e::emptyParameterList | p:parameterList;
-rule genericMethodInvoke = "." i:identifier params:genericParameterList?;
+rule genericParameterList = empty::emptyParameterList | params:parameterList;
+rule genericMethodInvoke = "." name:identifier params:genericParameterList?;
 
 #	An expression is a generic method call
-rule expression = r:reference methodInvokeList:genericMethodInvoke*;
+rule expression = ref:reference method:genericMethodInvoke*;
 
 rule main = expression;
