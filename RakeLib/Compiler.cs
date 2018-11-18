@@ -61,12 +61,55 @@ namespace RakeLib
 
         private CompiledCompute BuildExpression(RuleMatchResult ruleMatch)
         {
-            var expression = BuildReference(ruleMatch.NamedChildren["ref"]);
+            var reference = BuildReference(ruleMatch.NamedChildren["ref"]);
 
-            return expression;
+            if (ruleMatch.NamedChildren.ContainsKey("method"))
+            {
+                var methodInvoke =
+                    BuildMethodInvoke(ruleMatch.NamedChildren["method"].Children);
+
+                return new CompiledCompute
+                {
+                    Reference = reference,
+                    MethodInvoke = methodInvoke
+                };
+            }
+            else
+            {
+                return new CompiledCompute { Reference = reference };
+            }
         }
 
-        private CompiledCompute BuildReference(RuleMatchResult ruleMatch)
+        private CompiledMethodInvoke BuildMethodInvoke(IEnumerable<RuleMatchResult> invokeList)
+        {
+            if (invokeList.Any())
+            {
+                var genericMethodInvoke = invokeList.First();
+                var name = genericMethodInvoke.NamedChildren["name"].Text;
+                var parameters = genericMethodInvoke.NamedChildren["params"];
+
+                if (parameters.Children != null)
+                {
+                    throw new NotImplementedException();
+                }
+                else
+                {
+                    return new CompiledMethodInvoke
+                    {
+                        IsProperty = true,
+                        Name = name,
+                        //  Recursion
+                        Next = BuildMethodInvoke(invokeList.Skip(1))
+                    };
+                }
+            }
+            else
+            {   //  End of recursion
+                return null;
+            }
+        }
+
+        private CompiledReference BuildReference(RuleMatchResult ruleMatch)
         {
             var child = ruleMatch.NamedChildren.First();
             var refType = child.Key;
@@ -75,11 +118,11 @@ namespace RakeLib
             switch (refType)
             {
                 case "int":
-                    return new CompiledCompute { Integer = int.Parse(reference.Text) };
+                    return new CompiledReference { Integer = int.Parse(reference.Text) };
                 case "string":
-                    return new CompiledCompute { QuotedString = reference.NamedChildren["s"].Text };
+                    return new CompiledReference { QuotedString = reference.NamedChildren["s"].Text };
                 case "id":
-                    return new CompiledCompute { Identifier = reference.Text };
+                    return new CompiledReference { Identifier = reference.Text };
                 default:
                     throw new NotSupportedException($"Reference '{refType}'");
             }

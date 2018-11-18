@@ -7,5 +7,7 @@
         public string Name { get; set; }
 
         public CompiledCompute[] Parameters { get; set; }
+
+        public CompiledMethodInvoke Next { get; set; }
     }
 }
