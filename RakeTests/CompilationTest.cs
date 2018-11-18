@@ -106,7 +106,7 @@ namespace RakeTests
         {
             var compiler = new Compiler();
             var chain = new[] { "mi_ne", "Yours", "his", "hers" };
-            var compute = await compiler.CompileExpressionAsync("\"name\"." + string.Join("( ).", chain)+" (  )");
+            var compute = await compiler.CompileExpressionAsync("\"name\"." + string.Join("( ).", chain) + " (  )");
 
             Assert.IsNotNull(compute);
             Assert.AreEqual("name", compute.Reference.QuotedString, "QuotedString");
@@ -151,5 +151,42 @@ namespace RakeTests
             Assert.IsNull(compute.MethodInvoke.Next, "Next");
         }
         #endregion
+
+        [TestMethod]
+        public async Task Mix()
+        {
+            var compiler = new Compiler();
+            var compute = await compiler.CompileExpressionAsync("myvar.Count.Add( 42).Substract(22, none).isOk");
+
+            Assert.IsNotNull(compute);
+            Assert.AreEqual("myvar", compute.Reference.Identifier, "Identifier");
+            Assert.IsTrue(compute.MethodInvoke.IsProperty, "IsProperty");
+
+            Assert.AreEqual("Count", compute.MethodInvoke.Name, "Name");
+
+            Assert.AreEqual("Add", compute.MethodInvoke.Next.Name, "Next.Name");
+            Assert.AreEqual(1, compute.MethodInvoke.Next.Parameters.Length, "Next.Parameters.Length");
+            Assert.AreEqual(
+                42,
+                compute.MethodInvoke.Next.Parameters[0].Reference.Integer,
+                "Next.Parameters[0].Reference.Integer");
+
+            Assert.AreEqual("Substract", compute.MethodInvoke.Next.Next.Name, "Next.Next.Name");
+            Assert.AreEqual(
+                2,
+                compute.MethodInvoke.Next.Next.Parameters.Length,
+                "Next.Next.Parameters.Length");
+            Assert.AreEqual(
+                22,
+                compute.MethodInvoke.Next.Next.Parameters[0].Reference.Integer,
+                "Next.Next.Parameters[0].Reference.Integer");
+            Assert.AreEqual(
+                "none",
+                compute.MethodInvoke.Next.Next.Parameters[1].Reference.Identifier,
+                "Next.Next.Parameters[1].Reference.Identifier");
+
+            Assert.AreEqual("isOk", compute.MethodInvoke.Next.Next.Next.Name, "Next.Next.Next.Name");
+            Assert.IsTrue(compute.MethodInvoke.Next.Next.Next.IsProperty, "Next.Next.Next.IsProperty");
+        }
     }
 }
