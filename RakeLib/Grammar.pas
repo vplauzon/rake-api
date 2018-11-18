@@ -24,6 +24,6 @@ rule genericParameterList = e::emptyParameterList | p:parameterList;
 rule genericMethodInvoke = "." i:identifier params:genericParameterList?;
 
 #	An expression is a generic method call
-rule(recursive=true) expression = r:reference methodInvokeList:genericMethodInvoke*;
+rule expression = r:reference methodInvokeList:genericMethodInvoke*;
 
 rule main = expression;
