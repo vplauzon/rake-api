@@ -66,5 +66,22 @@ namespace RakeTests
             Assert.IsNull(compute.MethodInvoke.Parameters, "Parameters");
             Assert.IsNull(compute.MethodInvoke.Next, "Next");
         }
+
+        [TestMethod]
+        public async Task PropertyChain()
+        {
+            var compiler = new Compiler();
+            var chain = new[] { "a", "b", "c", "d" };
+            var compute = await compiler.CompileExpressionAsync("input." + string.Join('.', chain));
+
+            Assert.IsNotNull(compute);
+            Assert.AreEqual("input", compute.Reference.Identifier, "Identifier");
+            Assert.IsTrue(compute.MethodInvoke.IsProperty, "IsProperty");
+            Assert.AreEqual(chain[0], compute.MethodInvoke.Name, "Name");
+            Assert.IsNull(compute.MethodInvoke.Parameters, "Parameters");
+            Assert.AreEqual(chain[1], compute.MethodInvoke.Next.Name, "Next");
+            Assert.AreEqual(chain[2], compute.MethodInvoke.Next.Next.Name, "Next.Next");
+            Assert.AreEqual(chain[3], compute.MethodInvoke.Next.Next.Next.Name, "Next.Next.Next");
+        }
     }
 }
