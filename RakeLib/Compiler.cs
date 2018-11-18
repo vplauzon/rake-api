@@ -12,6 +12,8 @@ namespace RakeLib
     public class Compiler
     {
         private static readonly string _grammar = GetResource("Grammar.pas");
+        private static readonly CompiledCompute[] _emptyComputeArray = new CompiledCompute[0];
+
         private readonly ParserClient _parserClient;
 
         public Compiler() : this(ParserClient.CreateFromBaseUri(new Uri("http://pas-api.dev.vplauzon.com/")))
@@ -90,7 +92,16 @@ namespace RakeLib
 
                 if (parameters.Children != null)
                 {
-                    throw new NotImplementedException();
+                    var genericParameterList = parameters.Children.First();
+
+                    return new CompiledMethodInvoke
+                    {
+                        IsProperty = false,
+                        Name = name,
+                        Parameters = BuildParameters(genericParameterList),
+                        //  Recursion
+                        Next = BuildMethodInvoke(invokeList.Skip(1))
+                    };
                 }
                 else
                 {
@@ -106,6 +117,18 @@ namespace RakeLib
             else
             {   //  End of recursion
                 return null;
+            }
+        }
+
+        private CompiledCompute[] BuildParameters(RuleMatchResult genericParameterList)
+        {
+            if (genericParameterList.NamedChildren.Keys.First() == "empty")
+            {
+                return _emptyComputeArray;
+            }
+            else
+            {
+                throw new NotImplementedException();
             }
         }
 

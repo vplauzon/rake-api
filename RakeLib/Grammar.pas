@@ -20,7 +20,7 @@ rule(interleave=false, children=false) identifier = (letter | underscore) (lette
 rule reference = int:integer | string:quotedString | id:identifier;
 rule parameterList = "(" head:expression tail:("," e:expression)* ")";
 rule emptyParameterList = "(" ")";
-rule genericParameterList = empty::emptyParameterList | params:parameterList;
+rule genericParameterList = empty::emptyParameterList | paramList:parameterList;
 rule genericMethodInvoke = "." name:identifier params:genericParameterList?;
 
 #	An expression is a generic method call
