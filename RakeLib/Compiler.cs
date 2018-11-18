@@ -62,11 +62,11 @@ namespace RakeLib
         private CompiledCompute BuildExpression(RuleMatchResult ruleMatch)
         {
             var reference = BuildReference(ruleMatch.NamedChildren["ref"]);
+            var methodChildren = ruleMatch.NamedChildren["method"].Children;
 
-            if (ruleMatch.NamedChildren.ContainsKey("method"))
+            if (methodChildren != null)
             {
-                var methodInvoke =
-                    BuildMethodInvoke(ruleMatch.NamedChildren["method"].Children);
+                var methodInvoke = BuildMethodInvoke(methodChildren);
 
                 return new CompiledCompute
                 {

@@ -53,6 +53,7 @@ namespace RakeTests
         }
         #endregion
 
+        #region Properties
         [TestMethod]
         public async Task Property()
         {
@@ -83,5 +84,39 @@ namespace RakeTests
             Assert.AreEqual(chain[2], compute.MethodInvoke.Next.Next.Name, "Next.Next");
             Assert.AreEqual(chain[3], compute.MethodInvoke.Next.Next.Next.Name, "Next.Next.Next");
         }
+        #endregion
+
+        #region Empty Methods
+        [TestMethod]
+        public async Task EmptyMethod()
+        {
+            var compiler = new Compiler();
+            var compute = await compiler.CompileExpressionAsync("3.my_Method()");
+
+            Assert.IsNotNull(compute);
+            Assert.AreEqual(3, compute.Reference.Integer, "Integer");
+            Assert.IsFalse(compute.MethodInvoke.IsProperty, "IsProperty");
+            Assert.AreEqual("my_Method", compute.MethodInvoke.Name, "Name");
+            Assert.AreEqual(0, compute.MethodInvoke.Parameters.Length, "Parameters");
+            Assert.IsNull(compute.MethodInvoke.Next, "Next");
+        }
+
+        [TestMethod]
+        public async Task EmptyMethodChain()
+        {
+            var compiler = new Compiler();
+            var chain = new[] { "mi_ne", "Yours", "his", "hers" };
+            var compute = await compiler.CompileExpressionAsync("\"name\"." + string.Join("( ).", chain)+" (  )");
+
+            Assert.IsNotNull(compute);
+            Assert.AreEqual("name", compute.Reference.QuotedString, "QuotedString");
+            Assert.IsFalse(compute.MethodInvoke.IsProperty, "IsProperty");
+            Assert.AreEqual(chain[0], compute.MethodInvoke.Name, "Name");
+            Assert.AreEqual(0, compute.MethodInvoke.Parameters.Length, "Parameters");
+            Assert.AreEqual(chain[1], compute.MethodInvoke.Next.Name, "Next");
+            Assert.AreEqual(chain[2], compute.MethodInvoke.Next.Next.Name, "Next.Next");
+            Assert.AreEqual(chain[3], compute.MethodInvoke.Next.Next.Next.Name, "Next.Next.Next");
+        }
+        #endregion
     }
 }
