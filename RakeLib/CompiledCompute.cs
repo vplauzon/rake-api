@@ -6,5 +6,8 @@ namespace RakeLib
 {
     public class CompiledCompute
     {
+        public string Identifier { get; set; }
+
+        public CompiledMethodInvoke MethodInvoke { get; set; }
     }
 }

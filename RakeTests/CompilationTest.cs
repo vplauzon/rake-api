@@ -15,42 +15,14 @@ namespace RakeTests
         [TestMethod]
         public async Task SimpleXPath()
         {
-            var function = await GetCompiledFunctionAsync("simple-xpath.yaml");
-        }
+            var compiler = new Compiler();
+            var compute = await compiler.CompileExpressionAsync("input.myproperty");
 
-        private async Task<string> GetResourceAsync(string resourceName)
-        {
-            var type = this.GetType();
-            var assembly = type.GetTypeInfo().Assembly;
-            var fullResourceName = $"{type.Namespace}.Functions.{resourceName}";
-
-            using (var stream = assembly.GetManifestResourceStream(fullResourceName))
-            using (var reader = new StreamReader(stream))
-            {
-                var text = await reader.ReadToEndAsync();
-
-                return text;
-            }
-        }
-
-        private async Task<FunctionDescription> GetFunctionDescriptionAsync(string resourceName)
-        {
-            var content = await GetResourceAsync(resourceName);
-            var deserializer = new DeserializerBuilder()
-                .WithNamingConvention(new CamelCaseNamingConvention())
-                .Build();
-            var function = deserializer.Deserialize<FunctionDescription>(content);
-
-            return function;
-        }
-
-        private async Task<ExecutableFunction> GetCompiledFunctionAsync(string resourceName)
-        {
-            var description = await GetFunctionDescriptionAsync(resourceName);
-            var compiler = new FunctionCompiler();
-            var compiled = await compiler.CompileAsync(description);
-
-            return compiled;
+            Assert.IsNotNull(compute);
+            Assert.AreEqual("input", compute.Identifier, "Identifier");
+            Assert.IsTrue(compute.MethodInvoke.IsProperty, "IsProperty");
+            Assert.AreEqual("myproperty", compute.MethodInvoke.Name, "Name");
+            Assert.IsNull(compute.MethodInvoke.Parameters, "Parameters");
         }
     }
 }
