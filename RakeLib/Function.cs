@@ -9,7 +9,7 @@ namespace RakeLib
 
         public string[] Inputs { get; set; }
 
-        public Variable<T>[] Variables { get; set; }
+        public IDictionary<string, T> Variables { get; set; }
 
         public IDictionary<string, T> Outputs { get; set; }
     }

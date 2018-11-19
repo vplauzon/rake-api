@@ -43,30 +43,30 @@ namespace RakeLib
         {
             ValidateFunctionDescription(description);
 
+            //  Bundle variable and output descriptions in one batch
             var variableDescriptions = from v in description.Variables
-                                       select v.Description;
+                                       select v.Value;
             var outputDescriptions = from o in description.Outputs
                                      select o.Value;
             var descriptions = variableDescriptions.Concat(outputDescriptions);
             var results = await _parserClient.MultipleParseAsync(_grammar, "expression", descriptions);
+            //  Separate results into variables and outputs
             var variableResults = results.Take(variableDescriptions.Count());
             var outputResults = results.Skip(variableDescriptions.Count());
             var namedVariableResults = description.Variables.Zip(
                 variableResults,
-                (v, r) => KeyValuePair.Create(v.Name, r));
+                (v, r) => KeyValuePair.Create(v.Key, r));
             var namedOutputResults = description.Outputs.Zip(
                 outputResults,
                 (o, r) => KeyValuePair.Create(o.Key, r));
 
-            ValidateCompilation(namedVariableResults, "Variable");
-            ValidateCompilation(namedOutputResults, "Output");
+            ValidateParsingMatch(namedVariableResults, "Variable");
+            ValidateParsingMatch(namedOutputResults, "Output");
 
             var variables = from v in namedVariableResults
-                            select new Variable<CompiledCompute>
-                            {
-                                Name = v.Key,
-                                Description = BuildExpression(v.Value.RuleMatch)
-                            };
+                            select KeyValuePair.Create(
+                                v.Key,
+                                BuildExpression(v.Value.RuleMatch));
             var outputs = from o in namedOutputResults
                           select KeyValuePair.Create(
                               o.Key,
@@ -76,7 +76,7 @@ namespace RakeLib
             {
                 ApiVersion = description.ApiVersion,
                 Inputs = description.Inputs,
-                Variables = variables.ToArray(),
+                Variables = new Dictionary<string, CompiledCompute>(variables),
                 Outputs = new Dictionary<string, CompiledCompute>(outputs)
             };
         }
@@ -135,26 +135,21 @@ namespace RakeLib
             }
 
             //  Checking variables
-            if (description.Variables.Any(
-                v => v == null || string.IsNullOrWhiteSpace(v.Name) || string.IsNullOrWhiteSpace(v.Description)))
+            if (description.Variables.Keys.Any(v => string.IsNullOrWhiteSpace(v)))
             {
-                throw new ComputeException("Variables can't be blank");
+                throw new ComputeException("Variable names can't be blank");
             }
-            if (description.Variables.Any(i => !nameValidator(i.Name)))
+            if (description.Variables.Values.Any(v => string.IsNullOrWhiteSpace(v)))
+            {
+                throw new ComputeException("Variable values can't be blank");
+            }
+            if (description.Variables.Keys.Any(i => !nameValidator(i)))
             {
                 throw new ComputeException("Field names can only have alphanumeric characters and underscores");
             }
-            var repeatedVariable = (from g in description.Variables.GroupBy(v => v.Name)
-                                    where g.Count() > 1
-                                    select g.Key).FirstOrDefault();
-
-            if (repeatedVariable != null)
-            {
-                throw new ComputeException($"Variable '{repeatedVariable}' is repeated");
-            }
 
             var repeatedInputInVariable =
-                description.Inputs.Intersect(description.Variables.Select(v => v.Name)).FirstOrDefault();
+                description.Inputs.Intersect(description.Variables.Keys).FirstOrDefault();
 
             if (repeatedInputInVariable != null)
             {
@@ -162,9 +157,13 @@ namespace RakeLib
             }
 
             //  Checking outputs
-            if (description.Outputs.Values.Any(v => v == null))
+            if (description.Outputs.Keys.Any(v => string.IsNullOrWhiteSpace(v)))
             {
-                throw new ComputeException("Outputs can't be blank");
+                throw new ComputeException("Output names can't be blank");
+            }
+            if (description.Outputs.Values.Any(v => string.IsNullOrWhiteSpace(v)))
+            {
+                throw new ComputeException("Output values can't be blank");
             }
             if (description.Outputs.Any(i => !nameValidator(i.Key)))
             {
@@ -172,7 +171,7 @@ namespace RakeLib
             }
         }
 
-        private void ValidateCompilation(
+        private void ValidateParsingMatch(
             IEnumerable<KeyValuePair<string, ParsingResult>> namedResults,
             string resultType)
         {
