@@ -1,4 +1,4 @@
-﻿namespace RakeLib
+﻿namespace RakeLib.Parsing
 {
     internal class ParsedMethodInvoke
     {

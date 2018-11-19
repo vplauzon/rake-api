@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace RakeLib
+namespace RakeLib.Parsing
 {
     internal class ParsedCompute
     {

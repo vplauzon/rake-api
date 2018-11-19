@@ -1,5 +1,6 @@
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using RakeLib;
+using RakeLib.Parsing;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;

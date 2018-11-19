@@ -17,10 +17,11 @@
 
   <ItemGroup>
     <None Remove="Grammar.pas" />
+    <None Remove="Parsing\Grammar.pas" />
   </ItemGroup>
 
   <ItemGroup>
-    <EmbeddedResource Include="Grammar.pas" />
+    <EmbeddedResource Include="Parsing\Grammar.pas" />
   </ItemGroup>
 
   <ItemGroup>

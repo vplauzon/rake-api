@@ -7,7 +7,7 @@ using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace RakeLib
+namespace RakeLib.Parsing
 {
     internal class Parser
     {
@@ -192,7 +192,7 @@ namespace RakeLib
 
         private static string GetResource(string resourceName)
         {
-            var type = typeof(RakeLib.Parser);
+            var type = typeof(RakeLib.Parsing.Parser);
             var assembly = type.GetTypeInfo().Assembly;
             var fullResourceName = $"{type.Namespace}.{resourceName}";
 
