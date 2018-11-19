@@ -48,7 +48,7 @@ namespace RakeTests
         private async Task<ExecutableFunction> GetExecutableFunctionAsync(string resourceName)
         {
             var description = await GetFunctionDescriptionAsync(resourceName);
-            var compiler = new Compiler();
+            var compiler = new Parser();
             var maker = new FunctionMaker();
             var compiled = await compiler.CompileFunctionAsync(description);
             var executable = maker.Make(compiled);

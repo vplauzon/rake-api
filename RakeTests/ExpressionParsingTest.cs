@@ -6,13 +6,13 @@ using System.Threading.Tasks;
 namespace RakeTests
 {
     [TestClass]
-    public class ExpressionCompilationTest
+    public class ExpressionParsingTest
     {
         #region References
         [TestMethod]
         public async Task Integer()
         {
-            var compiler = new Compiler();
+            var compiler = new Parser();
             var compute = await compiler.ParseExpressionAsync("42");
 
             Assert.IsNotNull(compute);
@@ -25,7 +25,7 @@ namespace RakeTests
         [TestMethod]
         public async Task QuotedString()
         {
-            var compiler = new Compiler();
+            var compiler = new Parser();
             var compute = await compiler.ParseExpressionAsync("\"my text\"");
 
             Assert.IsNotNull(compute);
@@ -38,7 +38,7 @@ namespace RakeTests
         [TestMethod]
         public async Task Identifier()
         {
-            var compiler = new Compiler();
+            var compiler = new Parser();
             var compute = await compiler.ParseExpressionAsync("input");
 
             Assert.IsNotNull(compute);
@@ -53,7 +53,7 @@ namespace RakeTests
         [TestMethod]
         public async Task Property()
         {
-            var compiler = new Compiler();
+            var compiler = new Parser();
             var compute = await compiler.ParseExpressionAsync("input.myproperty");
 
             Assert.IsNotNull(compute);
@@ -67,7 +67,7 @@ namespace RakeTests
         [TestMethod]
         public async Task PropertyChain()
         {
-            var compiler = new Compiler();
+            var compiler = new Parser();
             var chain = new[] { "a", "b", "c", "d" };
             var compute = await compiler.ParseExpressionAsync("input." + string.Join('.', chain));
 
@@ -86,7 +86,7 @@ namespace RakeTests
         [TestMethod]
         public async Task EmptyMethod()
         {
-            var compiler = new Compiler();
+            var compiler = new Parser();
             var compute = await compiler.ParseExpressionAsync("3.my_Method()");
 
             Assert.IsNotNull(compute);
@@ -100,7 +100,7 @@ namespace RakeTests
         [TestMethod]
         public async Task EmptyMethodChain()
         {
-            var compiler = new Compiler();
+            var compiler = new Parser();
             var chain = new[] { "mi_ne", "Yours", "his", "hers" };
             var compute = await compiler.ParseExpressionAsync("\"name\"." + string.Join("( ).", chain) + " (  )");
 
@@ -119,7 +119,7 @@ namespace RakeTests
         [TestMethod]
         public async Task MethodWithOneParameter()
         {
-            var compiler = new Compiler();
+            var compiler = new Parser();
             var compute = await compiler.ParseExpressionAsync("3.myMethod( 4  )");
 
             Assert.IsNotNull(compute);
@@ -134,7 +134,7 @@ namespace RakeTests
         [TestMethod]
         public async Task MethodWithTwoParameters()
         {
-            var compiler = new Compiler();
+            var compiler = new Parser();
             var compute = await compiler.ParseExpressionAsync("3.myMethod( 4 ,  \"hello\")");
 
             Assert.IsNotNull(compute);
@@ -151,7 +151,7 @@ namespace RakeTests
         [TestMethod]
         public async Task Mix()
         {
-            var compiler = new Compiler();
+            var compiler = new Parser();
             var compute = await compiler.ParseExpressionAsync("myvar.Count.Add( 42).Substract(22, none).isOk");
 
             Assert.IsNotNull(compute);

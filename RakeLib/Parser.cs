@@ -9,18 +9,18 @@ using System.Threading.Tasks;
 
 namespace RakeLib
 {
-    public class Compiler
+    public class Parser
     {
         private static readonly string _grammar = GetResource("Grammar.pas");
         private static readonly ParsedCompute[] _emptyComputeArray = new ParsedCompute[0];
 
         private readonly ParserClient _parserClient;
 
-        public Compiler() : this(ParserClient.CreateFromBaseUri(new Uri("http://pas-api.dev.vplauzon.com/")))
+        public Parser() : this(ParserClient.CreateFromBaseUri(new Uri("http://pas-api.dev.vplauzon.com/")))
         {
         }
 
-        public Compiler(ParserClient parserClient)
+        public Parser(ParserClient parserClient)
         {
             _parserClient = parserClient ?? throw new ArgumentNullException(nameof(parserClient));
         }
@@ -189,7 +189,7 @@ namespace RakeLib
 
         private static string GetResource(string resourceName)
         {
-            var type = typeof(RakeLib.Compiler);
+            var type = typeof(RakeLib.Parser);
             var assembly = type.GetTypeInfo().Assembly;
             var fullResourceName = $"{type.Namespace}.{resourceName}";
 
