@@ -39,7 +39,7 @@ namespace RakeLib
             }
         }
 
-        public async Task<CompiledFunction> CompileFunctionAsync(FunctionDescription description)
+        public async Task<ParsedFunction> CompileFunctionAsync(FunctionDescription description)
         {
             ValidateFunctionDescription(description);
 
@@ -72,7 +72,7 @@ namespace RakeLib
                               o.Key,
                               BuildExpression(o.Value.RuleMatch));
 
-            return new CompiledFunction
+            return new ParsedFunction
             {
                 Inputs = description.Inputs,
                 Variables = new Dictionary<string, ParsedCompute>(variables),
