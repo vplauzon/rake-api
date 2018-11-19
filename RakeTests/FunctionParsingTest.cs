@@ -14,7 +14,6 @@ namespace RakeTests
         {
             var description = new FunctionDescription
             {
-                ApiVersion = "1.0",
                 Inputs = new[] { "url", "count" },
                 Variables = new Dictionary<string, string>()
                 {
@@ -42,7 +41,6 @@ namespace RakeTests
         {
             var description = new FunctionDescription
             {
-                ApiVersion = "1.0",
                 Inputs = new[] { "url", "url" },
                 Variables = new Dictionary<string, string>(),
                 Outputs = new Dictionary<string, string>()
@@ -60,7 +58,6 @@ namespace RakeTests
         {
             var description = new FunctionDescription
             {
-                ApiVersion = "1.0",
                 Inputs = new[] { "url", "count" },
                 Variables = new Dictionary<string, string>()
                 {
@@ -81,7 +78,6 @@ namespace RakeTests
         {
             var description = new FunctionDescription
             {
-                ApiVersion = "1.0",
                 Inputs = new[] { "url", "count" },
                 Variables = new Dictionary<string, string>()
                 {

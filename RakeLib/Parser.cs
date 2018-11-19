@@ -74,7 +74,6 @@ namespace RakeLib
 
             return new CompiledFunction
             {
-                ApiVersion = description.ApiVersion,
                 Inputs = description.Inputs,
                 Variables = new Dictionary<string, ParsedCompute>(variables),
                 Outputs = new Dictionary<string, ParsedCompute>(outputs)
@@ -93,10 +92,6 @@ namespace RakeLib
             {
                 throw new ArgumentNullException(nameof(description));
             }
-            if (string.IsNullOrWhiteSpace(description.ApiVersion))
-            {
-                throw new ArgumentNullException(nameof(description.ApiVersion));
-            }
             if (description.Inputs == null)
             {
                 throw new ArgumentNullException(nameof(description.Inputs));
@@ -108,12 +103,6 @@ namespace RakeLib
             if (description.Outputs == null)
             {
                 throw new ArgumentNullException(nameof(description.Outputs));
-            }
-
-            //  Checking API Version value
-            if (description.ApiVersion != ApiVersions.V10)
-            {
-                throw new ComputeException($"Version {description.ApiVersion} isn't supported");
             }
 
             //  Checking inputs

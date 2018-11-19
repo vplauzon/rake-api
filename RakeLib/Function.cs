@@ -5,8 +5,6 @@ namespace RakeLib
 {
     public class Function<T>
     {
-        public string ApiVersion { get; set; }
-
         public string[] Inputs { get; set; }
 
         public IDictionary<string, T> Variables { get; set; }
