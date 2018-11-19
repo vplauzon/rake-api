@@ -137,14 +137,6 @@ namespace RakeLib
                 throw new ComputeException("Field names can only have alphanumeric characters and underscores");
             }
 
-            var repeatedInputInVariable =
-                description.Inputs.Intersect(description.Variables.Keys).FirstOrDefault();
-
-            if (repeatedInputInVariable != null)
-            {
-                throw new ComputeException($"Variable '{repeatedInputInVariable}' has the same name as an input");
-            }
-
             //  Checking outputs
             if (description.Outputs.Keys.Any(v => string.IsNullOrWhiteSpace(v)))
             {
@@ -158,6 +150,28 @@ namespace RakeLib
             {
                 throw new ComputeException("Field names can only have alphanumeric characters and underscores");
             }
+
+            //  Check unicity of Input, Variables & Outputs
+            var repeatedInputInVariable =
+                description.Inputs.Intersect(description.Variables.Keys).FirstOrDefault();
+            var repeatedInputInOutput =
+                description.Inputs.Intersect(description.Outputs.Keys).FirstOrDefault();
+            var repeatedVariableInOutput =
+                description.Variables.Keys.Intersect(description.Outputs.Keys).FirstOrDefault();
+
+            if (repeatedInputInVariable != null)
+            {
+                throw new ComputeException($"Variable '{repeatedInputInVariable}' has the same name as an input");
+            }
+            if (repeatedInputInOutput != null)
+            {
+                throw new ComputeException($"Output '{repeatedInputInOutput}' has the same name as an input");
+            }
+            if (repeatedVariableInOutput != null)
+            {
+                throw new ComputeException($"Output '{repeatedVariableInOutput}' has the same name as a variable");
+            }
+
         }
 
         private void ValidateParsingMatch(

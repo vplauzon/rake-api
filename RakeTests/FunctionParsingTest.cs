@@ -22,7 +22,7 @@ namespace RakeTests
                 },
                 Outputs = new Dictionary<string, string>()
                 {
-                    {"content", "content.xpath(\"div\")" },
+                    {"formatted", "content.xpath(\"div\")" },
                     {"date", "content.xpath(\"date\")" }
                 }
             };
@@ -66,6 +66,46 @@ namespace RakeTests
                 Outputs = new Dictionary<string, string>()
                 {
                     {"content", "content.xpath(\"div\")" }
+                }
+            };
+            var compiler = new Parser();
+            var compiled = await compiler.CompileFunctionAsync(description);
+        }
+
+        [TestMethod]
+        [ExpectedException(typeof(ComputeException))]
+        public async Task RepeatVariableInOutput()
+        {
+            var description = new FunctionDescription
+            {
+                Inputs = new[] { "url", "count" },
+                Variables = new Dictionary<string, string>()
+                {
+                    {"a","count.parseInt()"}
+                },
+                Outputs = new Dictionary<string, string>()
+                {
+                    {"a", "content.xpath(\"div\")" }
+                }
+            };
+            var compiler = new Parser();
+            var compiled = await compiler.CompileFunctionAsync(description);
+        }
+
+        [TestMethod]
+        [ExpectedException(typeof(ComputeException))]
+        public async Task RepeatInputInOutput()
+        {
+            var description = new FunctionDescription
+            {
+                Inputs = new[] { "url", "count" },
+                Variables = new Dictionary<string, string>()
+                {
+                    {"a","count.parseInt()"}
+                },
+                Outputs = new Dictionary<string, string>()
+                {
+                    {"url", "content.xpath(\"div\")" }
                 }
             };
             var compiler = new Parser();
