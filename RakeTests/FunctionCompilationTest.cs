@@ -18,7 +18,7 @@ namespace RakeTests
         {
             var description = new FunctionDescription
             {
-                ApiVersion = "1",
+                ApiVersion = "1.0",
                 Inputs = new[] { "url", "count" },
                 Variables = new[]
                 {
@@ -46,6 +46,79 @@ namespace RakeTests
             Assert.AreEqual(2, compiled.Inputs.Length, "Inputs");
             Assert.AreEqual(2, compiled.Variables.Length, "Variables");
             Assert.AreEqual(2, compiled.Outputs.Count, "Outputs");
+        }
+
+        [TestMethod]
+        [ExpectedException(typeof(ComputeException))]
+        public async Task RepeatInput()
+        {
+            var description = new FunctionDescription
+            {
+                ApiVersion = "1",
+                Inputs = new[] { "url", "url" },
+                Variables = new Variable<string>[0],
+                Outputs = new Dictionary<string, string>()
+                {
+                    {"content", "content.xpath(\"div\")" }
+                }
+            };
+            var compiler = new Compiler();
+            var compiled = await compiler.CompileFunctionAsync(description);
+        }
+
+        [TestMethod]
+        [ExpectedException(typeof(ComputeException))]
+        public async Task RepeatVariable()
+        {
+            var description = new FunctionDescription
+            {
+                ApiVersion = "1",
+                Inputs = new[] { "url", "count" },
+                Variables = new[]
+                {
+                    new Variable<string>
+                    {
+                        Name="intCount",
+                        Description="count.parseInt()"
+                    },
+                    new Variable<string>
+                    {
+                        Name="intCount",
+                        Description="url.fetchContent()"
+                    }
+                },
+                Outputs = new Dictionary<string, string>()
+                {
+                    {"content", "content.xpath(\"div\")" }
+                }
+            };
+            var compiler = new Compiler();
+            var compiled = await compiler.CompileFunctionAsync(description);
+        }
+
+        [TestMethod]
+        [ExpectedException(typeof(ComputeException))]
+        public async Task RepeatInputInVariable()
+        {
+            var description = new FunctionDescription
+            {
+                ApiVersion = "1",
+                Inputs = new[] { "url", "count" },
+                Variables = new[]
+                {
+                    new Variable<string>
+                    {
+                        Name="url",
+                        Description="count.parseInt()"
+                    }
+                },
+                Outputs = new Dictionary<string, string>()
+                {
+                    {"content", "content.xpath(\"div\")" }
+                }
+            };
+            var compiler = new Compiler();
+            var compiled = await compiler.CompileFunctionAsync(description);
         }
     }
 }

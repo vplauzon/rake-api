@@ -41,22 +41,7 @@ namespace RakeLib
 
         public async Task<CompiledFunction> CompileFunctionAsync(FunctionDescription description)
         {
-            if (string.IsNullOrWhiteSpace(description.ApiVersion))
-            {
-                throw new ArgumentNullException(nameof(description.ApiVersion));
-            }
-            if (description.Inputs == null)
-            {
-                throw new ArgumentNullException(nameof(description.Inputs));
-            }
-            if (description.Variables == null)
-            {
-                throw new ArgumentNullException(nameof(description.Variables));
-            }
-            if (description.Outputs == null)
-            {
-                throw new ArgumentNullException(nameof(description.Outputs));
-            }
+            ValidateFunctionDescription(description);
 
             var variableDescriptions = from v in description.Variables
                                        select v.Description;
@@ -94,6 +79,80 @@ namespace RakeLib
                 Variables = variables.ToArray(),
                 Outputs = new Dictionary<string, CompiledCompute>(outputs)
             };
+        }
+
+        private void ValidateFunctionDescription(FunctionDescription description)
+        {
+            //  Checking for nulls
+            if (description == null)
+            {
+                throw new ArgumentNullException(nameof(description));
+            }
+            if (string.IsNullOrWhiteSpace(description.ApiVersion))
+            {
+                throw new ArgumentNullException(nameof(description.ApiVersion));
+            }
+            if (description.Inputs == null)
+            {
+                throw new ArgumentNullException(nameof(description.Inputs));
+            }
+            if (description.Variables == null)
+            {
+                throw new ArgumentNullException(nameof(description.Variables));
+            }
+            if (description.Outputs == null)
+            {
+                throw new ArgumentNullException(nameof(description.Outputs));
+            }
+
+            //  Checking API Version value
+            if (description.ApiVersion != ApiVersions.V10)
+            {
+                throw new ComputeException($"Version {description.ApiVersion} isn't supported");
+            }
+
+            //  Checking inputs
+            if (description.Inputs.Any(i => string.IsNullOrWhiteSpace(i)))
+            {
+                throw new ComputeException("Inputs can't be blank");
+            }
+            var repeatedInput = (from g in description.Inputs.GroupBy(i => i)
+                                 where g.Count() > 1
+                                 select g.Key).FirstOrDefault();
+
+            if (repeatedInput != null)
+            {
+                throw new ComputeException($"Input '{repeatedInput}' is repeated");
+            }
+
+            //  Checking variables
+            if (description.Variables.Any(
+                v => v == null || string.IsNullOrWhiteSpace(v.Name) || string.IsNullOrWhiteSpace(v.Description)))
+            {
+                throw new ComputeException("Variables can't be blank");
+            }
+            var repeatedVariable = (from g in description.Variables.GroupBy(v => v.Name)
+                                    where g.Count() > 1
+                                    select g.Key).FirstOrDefault();
+
+            if (repeatedVariable != null)
+            {
+                throw new ComputeException($"Variable '{repeatedVariable}' is repeated");
+            }
+
+            var repeatedInputInVariable =
+                description.Inputs.Intersect(description.Variables.Select(v => v.Name)).FirstOrDefault();
+
+            if (repeatedInputInVariable != null)
+            {
+                throw new ComputeException($"Variable '{repeatedInputInVariable}' has the same name as an input");
+            }
+
+            //  Checking outputs
+            if (description.Outputs.Values.Any(v => v == null))
+            {
+                throw new ComputeException("Outputs can't be blank");
+            }
         }
 
         private void ValidateCompilation(
