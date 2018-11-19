@@ -54,7 +54,7 @@ namespace RakeTests
         {
             var description = new FunctionDescription
             {
-                ApiVersion = "1",
+                ApiVersion = "1.0",
                 Inputs = new[] { "url", "url" },
                 Variables = new Variable<string>[0],
                 Outputs = new Dictionary<string, string>()
@@ -72,7 +72,7 @@ namespace RakeTests
         {
             var description = new FunctionDescription
             {
-                ApiVersion = "1",
+                ApiVersion = "1.0",
                 Inputs = new[] { "url", "count" },
                 Variables = new[]
                 {
@@ -102,13 +102,38 @@ namespace RakeTests
         {
             var description = new FunctionDescription
             {
-                ApiVersion = "1",
+                ApiVersion = "1.0",
                 Inputs = new[] { "url", "count" },
                 Variables = new[]
                 {
                     new Variable<string>
                     {
                         Name="url",
+                        Description="count.parseInt()"
+                    }
+                },
+                Outputs = new Dictionary<string, string>()
+                {
+                    {"content", "content.xpath(\"div\")" }
+                }
+            };
+            var compiler = new Compiler();
+            var compiled = await compiler.CompileFunctionAsync(description);
+        }
+
+        [TestMethod]
+        [ExpectedException(typeof(ComputeException))]
+        public async Task InvalidVariableName()
+        {
+            var description = new FunctionDescription
+            {
+                ApiVersion = "1.0",
+                Inputs = new[] { "url", "count" },
+                Variables = new[]
+                {
+                    new Variable<string>
+                    {
+                        Name="$recount",
                         Description="count.parseInt()"
                     }
                 },

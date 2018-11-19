@@ -83,6 +83,11 @@ namespace RakeLib
 
         private void ValidateFunctionDescription(FunctionDescription description)
         {
+            Func<string, bool> nameValidator = name => name.All(c => (c >= '0' && c <= '9')
+            || (c >= 'a' && c <= 'z')
+            || (c >= 'A' && c <= 'Z')
+            || c == '_');
+
             //  Checking for nulls
             if (description == null)
             {
@@ -116,6 +121,10 @@ namespace RakeLib
             {
                 throw new ComputeException("Inputs can't be blank");
             }
+            if (description.Inputs.Any(i => !nameValidator(i)))
+            {
+                throw new ComputeException("Field names can only have alphanumeric characters and underscores");
+            }
             var repeatedInput = (from g in description.Inputs.GroupBy(i => i)
                                  where g.Count() > 1
                                  select g.Key).FirstOrDefault();
@@ -130,6 +139,10 @@ namespace RakeLib
                 v => v == null || string.IsNullOrWhiteSpace(v.Name) || string.IsNullOrWhiteSpace(v.Description)))
             {
                 throw new ComputeException("Variables can't be blank");
+            }
+            if (description.Variables.Any(i => !nameValidator(i.Name)))
+            {
+                throw new ComputeException("Field names can only have alphanumeric characters and underscores");
             }
             var repeatedVariable = (from g in description.Variables.GroupBy(v => v.Name)
                                     where g.Count() > 1
@@ -152,6 +165,10 @@ namespace RakeLib
             if (description.Outputs.Values.Any(v => v == null))
             {
                 throw new ComputeException("Outputs can't be blank");
+            }
+            if (description.Outputs.Any(i => !nameValidator(i.Key)))
+            {
+                throw new ComputeException("Field names can only have alphanumeric characters and underscores");
             }
         }
 
