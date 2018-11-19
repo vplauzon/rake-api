@@ -2,11 +2,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using RakeLib;
 using System;
 using System.Collections.Generic;
-using System.IO;
-using System.Reflection;
 using System.Threading.Tasks;
-using YamlDotNet.Serialization;
-using YamlDotNet.Serialization.NamingConventions;
 
 namespace RakeTests
 {
