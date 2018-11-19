@@ -1,6 +1,6 @@
 ﻿namespace RakeLib
 {
-    public class ParsedReference
+    internal class ParsedReference
     {
         public int? Integer { get; set; }
 

@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 
 namespace RakeLib
 {
-    public class Parser
+    internal class Parser
     {
         private static readonly string _grammar = GetResource("Grammar.pas");
         private static readonly ParsedCompute[] _emptyComputeArray = new ParsedCompute[0];

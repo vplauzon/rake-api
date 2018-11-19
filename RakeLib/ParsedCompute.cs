@@ -4,7 +4,7 @@ using System.Text;
 
 namespace RakeLib
 {
-    public class ParsedCompute
+    internal class ParsedCompute
     {
         public ParsedReference Reference { get; set; }
 

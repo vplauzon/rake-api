@@ -1,6 +1,6 @@
 ﻿namespace RakeLib
 {
-    public class ParsedMethodInvoke
+    internal class ParsedMethodInvoke
     {
         public bool IsProperty { get; set; }
 

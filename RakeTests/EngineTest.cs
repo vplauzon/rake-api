@@ -49,11 +49,12 @@ namespace RakeTests
         {
             var description = await GetFunctionDescriptionAsync(resourceName);
             var compiler = new Parser();
-            var maker = new FunctionMaker();
+            //var maker = new FunctionMaker();
             var compiled = await compiler.CompileFunctionAsync(description);
-            var executable = maker.Make(compiled);
+            //var executable = maker.Make(compiled);
 
-            return executable;
+            //return executable;
+            throw new NotImplementedException();
         }
     }
 }
