@@ -13,7 +13,7 @@ namespace RakeTests
         public async Task Integer()
         {
             var compiler = new Compiler();
-            var compute = await compiler.CompileExpressionAsync("42");
+            var compute = await compiler.ParseExpressionAsync("42");
 
             Assert.IsNotNull(compute);
             Assert.AreEqual(42, compute.Reference.Integer, "Integer");
@@ -26,7 +26,7 @@ namespace RakeTests
         public async Task QuotedString()
         {
             var compiler = new Compiler();
-            var compute = await compiler.CompileExpressionAsync("\"my text\"");
+            var compute = await compiler.ParseExpressionAsync("\"my text\"");
 
             Assert.IsNotNull(compute);
             Assert.AreEqual("my text", compute.Reference.QuotedString, "QuotedString");
@@ -39,7 +39,7 @@ namespace RakeTests
         public async Task Identifier()
         {
             var compiler = new Compiler();
-            var compute = await compiler.CompileExpressionAsync("input");
+            var compute = await compiler.ParseExpressionAsync("input");
 
             Assert.IsNotNull(compute);
             Assert.AreEqual("input", compute.Reference.Identifier, "Identifier");
@@ -54,7 +54,7 @@ namespace RakeTests
         public async Task Property()
         {
             var compiler = new Compiler();
-            var compute = await compiler.CompileExpressionAsync("input.myproperty");
+            var compute = await compiler.ParseExpressionAsync("input.myproperty");
 
             Assert.IsNotNull(compute);
             Assert.AreEqual("input", compute.Reference.Identifier, "Identifier");
@@ -69,7 +69,7 @@ namespace RakeTests
         {
             var compiler = new Compiler();
             var chain = new[] { "a", "b", "c", "d" };
-            var compute = await compiler.CompileExpressionAsync("input." + string.Join('.', chain));
+            var compute = await compiler.ParseExpressionAsync("input." + string.Join('.', chain));
 
             Assert.IsNotNull(compute);
             Assert.AreEqual("input", compute.Reference.Identifier, "Identifier");
@@ -87,7 +87,7 @@ namespace RakeTests
         public async Task EmptyMethod()
         {
             var compiler = new Compiler();
-            var compute = await compiler.CompileExpressionAsync("3.my_Method()");
+            var compute = await compiler.ParseExpressionAsync("3.my_Method()");
 
             Assert.IsNotNull(compute);
             Assert.AreEqual(3, compute.Reference.Integer, "Integer");
@@ -102,7 +102,7 @@ namespace RakeTests
         {
             var compiler = new Compiler();
             var chain = new[] { "mi_ne", "Yours", "his", "hers" };
-            var compute = await compiler.CompileExpressionAsync("\"name\"." + string.Join("( ).", chain) + " (  )");
+            var compute = await compiler.ParseExpressionAsync("\"name\"." + string.Join("( ).", chain) + " (  )");
 
             Assert.IsNotNull(compute);
             Assert.AreEqual("name", compute.Reference.QuotedString, "QuotedString");
@@ -120,7 +120,7 @@ namespace RakeTests
         public async Task MethodWithOneParameter()
         {
             var compiler = new Compiler();
-            var compute = await compiler.CompileExpressionAsync("3.myMethod( 4  )");
+            var compute = await compiler.ParseExpressionAsync("3.myMethod( 4  )");
 
             Assert.IsNotNull(compute);
             Assert.AreEqual(3, compute.Reference.Integer, "Integer");
@@ -135,7 +135,7 @@ namespace RakeTests
         public async Task MethodWithTwoParameters()
         {
             var compiler = new Compiler();
-            var compute = await compiler.CompileExpressionAsync("3.myMethod( 4 ,  \"hello\")");
+            var compute = await compiler.ParseExpressionAsync("3.myMethod( 4 ,  \"hello\")");
 
             Assert.IsNotNull(compute);
             Assert.AreEqual(3, compute.Reference.Integer, "Integer");
@@ -152,7 +152,7 @@ namespace RakeTests
         public async Task Mix()
         {
             var compiler = new Compiler();
-            var compute = await compiler.CompileExpressionAsync("myvar.Count.Add( 42).Substract(22, none).isOk");
+            var compute = await compiler.ParseExpressionAsync("myvar.Count.Add( 42).Substract(22, none).isOk");
 
             Assert.IsNotNull(compute);
             Assert.AreEqual("myvar", compute.Reference.Identifier, "Identifier");

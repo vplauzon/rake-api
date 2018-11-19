@@ -12,7 +12,7 @@ namespace RakeLib
     public class Compiler
     {
         private static readonly string _grammar = GetResource("Grammar.pas");
-        private static readonly CompiledCompute[] _emptyComputeArray = new CompiledCompute[0];
+        private static readonly ParsedCompute[] _emptyComputeArray = new ParsedCompute[0];
 
         private readonly ParserClient _parserClient;
 
@@ -25,7 +25,7 @@ namespace RakeLib
             _parserClient = parserClient ?? throw new ArgumentNullException(nameof(parserClient));
         }
 
-        public async Task<CompiledCompute> CompileExpressionAsync(string expression)
+        public async Task<ParsedCompute> ParseExpressionAsync(string expression)
         {
             var result = await _parserClient.SingleParseAsync(_grammar, "expression", expression);
 
@@ -76,8 +76,8 @@ namespace RakeLib
             {
                 ApiVersion = description.ApiVersion,
                 Inputs = description.Inputs,
-                Variables = new Dictionary<string, CompiledCompute>(variables),
-                Outputs = new Dictionary<string, CompiledCompute>(outputs)
+                Variables = new Dictionary<string, ParsedCompute>(variables),
+                Outputs = new Dictionary<string, ParsedCompute>(outputs)
             };
         }
 
@@ -202,7 +202,7 @@ namespace RakeLib
             }
         }
 
-        private CompiledCompute BuildExpression(RuleMatchResult ruleMatch)
+        private ParsedCompute BuildExpression(RuleMatchResult ruleMatch)
         {
             var reference = BuildReference(ruleMatch.NamedChildren["ref"]);
             var methodChildren = ruleMatch.NamedChildren["method"].Children;
@@ -211,7 +211,7 @@ namespace RakeLib
             {
                 var methodInvoke = BuildMethodInvoke(methodChildren);
 
-                return new CompiledCompute
+                return new ParsedCompute
                 {
                     Reference = reference,
                     MethodInvoke = methodInvoke
@@ -219,11 +219,11 @@ namespace RakeLib
             }
             else
             {
-                return new CompiledCompute { Reference = reference };
+                return new ParsedCompute { Reference = reference };
             }
         }
 
-        private CompiledMethodInvoke BuildMethodInvoke(IEnumerable<RuleMatchResult> invokeList)
+        private ParsedMethodInvoke BuildMethodInvoke(IEnumerable<RuleMatchResult> invokeList)
         {
             if (invokeList.Any())
             {
@@ -235,7 +235,7 @@ namespace RakeLib
                 {
                     var genericParameterList = parameters.Children.First();
 
-                    return new CompiledMethodInvoke
+                    return new ParsedMethodInvoke
                     {
                         IsProperty = false,
                         Name = name,
@@ -246,7 +246,7 @@ namespace RakeLib
                 }
                 else
                 {
-                    return new CompiledMethodInvoke
+                    return new ParsedMethodInvoke
                     {
                         IsProperty = true,
                         Name = name,
@@ -261,7 +261,7 @@ namespace RakeLib
             }
         }
 
-        private CompiledCompute[] BuildParameters(RuleMatchResult genericParameterList)
+        private ParsedCompute[] BuildParameters(RuleMatchResult genericParameterList)
         {
             if (genericParameterList.NamedChildren.Keys.First() == "empty")
             {
@@ -289,7 +289,7 @@ namespace RakeLib
             }
         }
 
-        private CompiledReference BuildReference(RuleMatchResult ruleMatch)
+        private ParsedReference BuildReference(RuleMatchResult ruleMatch)
         {
             var child = ruleMatch.NamedChildren.First();
             var refType = child.Key;
@@ -298,11 +298,11 @@ namespace RakeLib
             switch (refType)
             {
                 case "int":
-                    return new CompiledReference { Integer = int.Parse(reference.Text) };
+                    return new ParsedReference { Integer = int.Parse(reference.Text) };
                 case "string":
-                    return new CompiledReference { QuotedString = reference.NamedChildren["s"].Text };
+                    return new ParsedReference { QuotedString = reference.NamedChildren["s"].Text };
                 case "id":
-                    return new CompiledReference { Identifier = reference.Text };
+                    return new ParsedReference { Identifier = reference.Text };
                 default:
                     throw new NotSupportedException($"Reference '{refType}'");
             }
