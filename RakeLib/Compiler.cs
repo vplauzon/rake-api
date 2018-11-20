@@ -13,6 +13,13 @@ namespace RakeLib
         #region Inner Types
         private class CompilerStateMachine
         {
+            private static readonly IImmutableSet<string> _predefinedCompute =
+                ImmutableSortedSet<string>
+                .Empty
+                .Add("url")
+                .Add("content")
+                .Add("util");
+
             private readonly string[] _inputs;
             private readonly IImmutableSet<string> _inputSet;
             private readonly IDictionary<string, ParsedCompute> _variables;
@@ -92,6 +99,40 @@ namespace RakeLib
                 }
                 _computeStack = _computeStack.Push(name);
 
+                var reference = EnsureReference(parsedCompute);
+
+                if (parsedCompute.MethodInvoke == null)
+                {
+                    var compute = new NamedCompiledCompute
+                    {
+                        Name = name,
+                        Compute = new CompiledCompute
+                        {
+                            Name = name,
+                            Parameters = new[] { reference },
+                            IsProperty = false
+                        },
+                        IsHidden = isHidden,
+                        IsOutput = isOutput
+                    };
+
+                    AddCompiledCompute(compute);
+                }
+                else
+                {
+                    throw new NotImplementedException();
+                }
+                _computeStack = _computeStack.Pop();
+            }
+
+            private void AddCompiledCompute(NamedCompiledCompute compute)
+            {
+                _compiledComputes = _compiledComputes.Add(compute);
+                _compiledComputesIndex = _compiledComputesIndex.Add(compute.Name);
+            }
+
+            private CompiledReference EnsureReference(ParsedCompute parsedCompute)
+            {
                 var reference = new CompiledReference
                 {
                     Identifier = parsedCompute.Reference.Identifier,
@@ -99,19 +140,21 @@ namespace RakeLib
                     QuotedString = parsedCompute.Reference.QuotedString
                 };
 
-                if (reference.Identifier != null)
-                {
-                    EnsureIdentifier(reference.Identifier);
-                }
-                throw new NotImplementedException();
+                EnsureIdentifier(reference);
+
+                return reference;
             }
 
-            private void EnsureIdentifier(string identifier)
+            private void EnsureIdentifier(CompiledReference reference)
             {
-                if (!_compiledComputesIndex.Contains(identifier)
-                    && !_inputSet.Contains(identifier))
+                var identifier = reference.Identifier;
+
+                if (identifier != null
+                    && !_compiledComputesIndex.Contains(identifier)
+                    && !_inputSet.Contains(identifier)
+                    && !_predefinedCompute.Contains(identifier))
                 {
-                    if(_variables.ContainsKey(identifier))
+                    if (_variables.ContainsKey(identifier))
                     {
                         CompileVariable(identifier);
                     }
