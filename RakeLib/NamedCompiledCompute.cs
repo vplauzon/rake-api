@@ -8,8 +8,6 @@ namespace RakeLib
     {
         public string Name { get; set; }
 
-        public bool IsAsync { get; set; }
-
         public bool IsOutput { get; set; }
 
         public bool IsHidden { get; set; }

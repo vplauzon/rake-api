@@ -20,6 +20,9 @@ namespace RakeLib
             private IImmutableStack<string> _computeStack = ImmutableStack<string>.Empty;
             private IImmutableList<NamedCompiledCompute> _compiledComputes =
                 ImmutableList<NamedCompiledCompute>.Empty;
+            private IImmutableSet<string> _compiledComputesIndex =
+                ImmutableSortedSet<string>.Empty;
+            //private int _hiddenVariableIndex = 1;
 
             public CompilerStateMachine(ParsedFunction parsedFunction)
             {
@@ -83,13 +86,44 @@ namespace RakeLib
                 bool isOutput,
                 bool isHidden)
             {
-                if(_computeStack.Contains(name))
+                if (_computeStack.Contains(name))
                 {
                     throw new ComputeException($"Circular reference involving '{name}'");
                 }
                 _computeStack = _computeStack.Push(name);
 
+                var reference = new CompiledReference
+                {
+                    Identifier = parsedCompute.Reference.Identifier,
+                    Integer = parsedCompute.Reference.Integer,
+                    QuotedString = parsedCompute.Reference.QuotedString
+                };
+
+                if (reference.Identifier != null)
+                {
+                    EnsureIdentifier(reference.Identifier);
+                }
                 throw new NotImplementedException();
+            }
+
+            private void EnsureIdentifier(string identifier)
+            {
+                if (!_compiledComputesIndex.Contains(identifier)
+                    && !_inputSet.Contains(identifier))
+                {
+                    if(_variables.ContainsKey(identifier))
+                    {
+                        CompileVariable(identifier);
+                    }
+                    else if (_outputs.ContainsKey(identifier))
+                    {
+                        CompileOutput(identifier);
+                    }
+                    else
+                    {
+                        throw new ComputeException($"Unknown identifier '{identifier}'");
+                    }
+                }
             }
         }
         #endregion
