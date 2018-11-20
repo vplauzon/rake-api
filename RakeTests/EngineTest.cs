@@ -51,7 +51,7 @@ namespace RakeTests
             var description = await GetFunctionDescriptionAsync(resourceName);
             var compiler = new Parser();
             //var maker = new FunctionMaker();
-            var compiled = await compiler.CompileFunctionAsync(description);
+            var compiled = await compiler.ParseFunctionAsync(description);
             //var executable = maker.Make(compiled);
 
             //return executable;

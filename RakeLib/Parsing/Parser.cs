@@ -39,7 +39,7 @@ namespace RakeLib.Parsing
             }
         }
 
-        public async Task<ParsedFunction> CompileFunctionAsync(FunctionDescription description)
+        public async Task<ParsedFunction> ParseFunctionAsync(FunctionDescription description)
         {
             ValidateFunctionDescription(description);
 

@@ -28,7 +28,7 @@ namespace RakeTests
                 }
             };
             var compiler = new Parser();
-            var compiled = await compiler.CompileFunctionAsync(description);
+            var compiled = await compiler.ParseFunctionAsync(description);
 
             Assert.IsNotNull(compiled);
             Assert.AreEqual(2, compiled.Inputs.Length, "Inputs");
@@ -50,7 +50,7 @@ namespace RakeTests
                 }
             };
             var compiler = new Parser();
-            var compiled = await compiler.CompileFunctionAsync(description);
+            var compiled = await compiler.ParseFunctionAsync(description);
         }
 
         [TestMethod]
@@ -70,7 +70,7 @@ namespace RakeTests
                 }
             };
             var compiler = new Parser();
-            var compiled = await compiler.CompileFunctionAsync(description);
+            var compiled = await compiler.ParseFunctionAsync(description);
         }
 
         [TestMethod]
@@ -90,7 +90,7 @@ namespace RakeTests
                 }
             };
             var compiler = new Parser();
-            var compiled = await compiler.CompileFunctionAsync(description);
+            var compiled = await compiler.ParseFunctionAsync(description);
         }
 
         [TestMethod]
@@ -110,7 +110,7 @@ namespace RakeTests
                 }
             };
             var compiler = new Parser();
-            var compiled = await compiler.CompileFunctionAsync(description);
+            var compiled = await compiler.ParseFunctionAsync(description);
         }
 
         [TestMethod]
@@ -130,7 +130,7 @@ namespace RakeTests
                 }
             };
             var compiler = new Parser();
-            var compiled = await compiler.CompileFunctionAsync(description);
+            var compiled = await compiler.ParseFunctionAsync(description);
         }
     }
 }
