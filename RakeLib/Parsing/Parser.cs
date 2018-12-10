@@ -114,6 +114,11 @@ namespace RakeLib.Parsing
             {
                 throw new ComputeException("Field names can only have alphanumeric characters and underscores");
             }
+            if (description.Variables.Keys.Any(i => ReservedVariableNames.List.Contains(i)))
+            {
+                throw new ComputeException(
+                    $"Field names cannot use any of the reserved keywords:  {{{string.Join(", ", ReservedVariableNames.List)}}}");
+            }
             var repeatedInput = (from g in description.Inputs.GroupBy(i => i)
                                  where g.Count() > 1
                                  select g.Key).FirstOrDefault();
@@ -135,6 +140,11 @@ namespace RakeLib.Parsing
             if (description.Variables.Keys.Any(i => !nameValidator(i)))
             {
                 throw new ComputeException("Field names can only have alphanumeric characters and underscores");
+            }
+            if (description.Variables.Keys.Any(i => ReservedVariableNames.List.Contains(i)))
+            {
+                throw new ComputeException(
+                    $"Field names cannot use any of the reserved keywords:  {{{string.Join(", ", ReservedVariableNames.List)}}}");
             }
 
             //  Checking outputs
@@ -171,7 +181,6 @@ namespace RakeLib.Parsing
             {
                 throw new ComputeException($"Output '{repeatedVariableInOutput}' has the same name as a variable");
             }
-
         }
 
         private void ValidateParsingMatch(

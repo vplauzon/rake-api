@@ -12,6 +12,8 @@ namespace RakeLib
 
         public bool IsDeclaredVariable { get; set; }
 
+        public bool IsExecutionTimeInjected { get; set; }
+
         public CompiledCompute Compute { get; set; }
     }
 }
