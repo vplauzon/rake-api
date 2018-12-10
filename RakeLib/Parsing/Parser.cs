@@ -215,6 +215,8 @@ namespace RakeLib.Parsing
             {
                 case "prim":
                     return new ParsedExpression { Primitive = ParsePrimitive(expression) };
+                case "ref":
+                    return new ParsedExpression { Reference = expression.Text };
                 case "prop":
                     return new ParsedExpression { Property = ParseProperty(expression) };
                 case "meth":
@@ -236,8 +238,6 @@ namespace RakeLib.Parsing
                     return new ParsedPrimitive { Integer = int.Parse(primitive.Text) };
                 case "string":
                     return new ParsedPrimitive { QuotedString = primitive.NamedChildren["s"].Text };
-                case "id":
-                    return new ParsedPrimitive { Identifier = primitive.Text };
                 default:
                     throw new NotSupportedException($"Primitive '{primitiveType}'");
             }

@@ -5,7 +5,7 @@ namespace RakeLib
 {
     public class CompiledFunction
     {
-        public string[] Inputs { get; set; }
+        public string[] InputNames { get; set; }
 
         public NamedCompiledCompute[] Computes { get; set; }
     }

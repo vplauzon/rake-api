@@ -10,7 +10,7 @@ namespace RakeLib
 
         public bool IsOutput { get; set; }
 
-        public bool IsHidden { get; set; }
+        public bool IsDeclaredVariable { get; set; }
 
         public CompiledCompute Compute { get; set; }
     }

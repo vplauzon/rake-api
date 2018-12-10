@@ -15,13 +15,13 @@ rule(interleave=false, children=false) letter = ("A".."Z") | ("a".."z");
 rule(interleave=false, children=false) underscore = "_";
 rule(interleave=false, children=false) identifier = (letter | underscore) (letter | underscore | integer)*;
 
-rule primitive = int:integer | string:quotedString | id:identifier;
+rule primitive = int:integer | string:quotedString;
 rule property = obj:expression "." name:identifier;
 rule emptyParameterList = "(" ")";
 rule nonEmptyParameterList = "(" head:expression tail:("," e:expression)* ")";
 rule parameterList = empty::emptyParameterList | nonEmpty:nonEmptyParameterList;
 rule methodInvoke = obj:expression "." name:identifier params:parameterList;
 
-rule(recursive=true) expression = prim:primitive | prop:property | meth:methodInvoke;
+rule(recursive=true) expression = prim:primitive | ref:identifier | prop:property | meth:methodInvoke;
 
 rule main = expression;
