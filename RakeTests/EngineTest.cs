@@ -13,7 +13,7 @@ namespace RakeTests
     [TestClass]
     public class EngineTest
     {
-        [TestMethod]
+        //[TestMethod]
         public async Task SimpleXPath()
         {
             var content = GetResourceAsync("simple-web.html");

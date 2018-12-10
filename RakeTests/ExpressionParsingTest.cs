@@ -20,7 +20,7 @@ namespace RakeTests
             Assert.IsNotNull(expression, "Expression");
             Assert.IsNotNull(expression.Primitive, "Primitive");
             Assert.AreEqual(42, expression.Primitive.Integer, "Integer");
-            Assert.IsNull(expression.Primitive.Identifier, "Identifier");
+            Assert.IsNull(expression.Reference, "Reference");
             Assert.IsNull(expression.Primitive.QuotedString, "QuotedString");
             Assert.IsNull(expression.Property, "Property");
             Assert.IsNull(expression.MethodInvoke, "MethodInvoke");
@@ -36,7 +36,7 @@ namespace RakeTests
             Assert.IsNotNull(expression.Primitive, "Primitive");
             Assert.AreEqual("my text", expression.Primitive.QuotedString, "QuotedString");
             Assert.IsNull(expression.Primitive.Integer, "Integer");
-            Assert.IsNull(expression.Primitive.Identifier, "Identifier");
+            Assert.IsNull(expression.Reference, "Reference");
             Assert.IsNull(expression.Property, "Property");
             Assert.IsNull(expression.MethodInvoke, "MethodInvoke");
         }
@@ -48,10 +48,8 @@ namespace RakeTests
             var expression = await compiler.ParseExpressionAsync("input");
 
             Assert.IsNotNull(expression, "Expression");
-            Assert.IsNotNull(expression.Primitive, "Primitive");
-            Assert.AreEqual("input", expression.Primitive.Identifier, "Identifier");
-            Assert.IsNull(expression.Primitive.Integer, "Integer");
-            Assert.IsNull(expression.Primitive.QuotedString, "QuotedString");
+            Assert.AreEqual("input", expression.Reference, "Reference");
+            Assert.IsNull(expression.Primitive, "Primitive");
             Assert.IsNull(expression.Property, "Property");
             Assert.IsNull(expression.MethodInvoke, "MethodInvoke");
         }
@@ -66,7 +64,7 @@ namespace RakeTests
 
             Assert.IsNotNull(expression, "Expression");
             Assert.IsNotNull(expression.Property, "Property");
-            Assert.AreEqual("input", expression.Property.Object.Primitive.Identifier, "Identifier");
+            Assert.AreEqual("input", expression.Property.Object.Reference, "Reference");
             Assert.AreEqual("myproperty", expression.Property.Name, "Name");
             Assert.IsNull(expression.Primitive, "Primitive");
             Assert.IsNull(expression.MethodInvoke, "MethodInvoke");
@@ -92,7 +90,7 @@ namespace RakeTests
 
             Assert.AreEqual(
                 "input",
-                expression.Property.Object.Property.Object.Property.Object.Property.Object.Primitive.Identifier,
+                expression.Property.Object.Property.Object.Property.Object.Property.Object.Reference,
                 "Identifier");
 
             Assert.IsTrue(Enumerable.SequenceEqual(chain, names), "Names");
@@ -113,6 +111,7 @@ namespace RakeTests
             Assert.AreEqual(3, expression.MethodInvoke.Object.Primitive.Integer, "Integer");
             Assert.AreEqual("my_Method", expression.MethodInvoke.Name, "Name");
             Assert.AreEqual(0, expression.MethodInvoke.Parameters.Length, "Parameters");
+            Assert.IsNull(expression.Reference, "Reference");
             Assert.IsNull(expression.Primitive, "Primitive");
             Assert.IsNull(expression.Property, "Property");
         }
@@ -139,6 +138,7 @@ namespace RakeTests
                 "QuotedString");
             Assert.IsNull(expression.Primitive, "Primitive");
             Assert.IsNull(expression.Property, "Property");
+            Assert.IsNull(expression.Reference, "Reference");
         }
         #endregion
 
@@ -155,6 +155,7 @@ namespace RakeTests
             Assert.AreEqual("myMethod", expression.MethodInvoke.Name, "Name");
             Assert.AreEqual(1, expression.MethodInvoke.Parameters.Length, "Parameters");
             Assert.AreEqual(4, expression.MethodInvoke.Parameters[0].Primitive.Integer, "Parameters-0");
+            Assert.IsNull(expression.Reference, "Reference");
             Assert.IsNull(expression.Primitive, "Primitive");
             Assert.IsNull(expression.Property, "Property");
         }
@@ -172,6 +173,7 @@ namespace RakeTests
             Assert.AreEqual(2, expression.MethodInvoke.Parameters.Length, "Parameters");
             Assert.AreEqual(4, expression.MethodInvoke.Parameters[0].Primitive.Integer, "Parameters-0");
             Assert.AreEqual("hello", expression.MethodInvoke.Parameters[1].Primitive.QuotedString, "Parameters-1");
+            Assert.IsNull(expression.Reference, "Reference");
             Assert.IsNull(expression.Primitive, "Primitive");
             Assert.IsNull(expression.Property, "Property");
         }
