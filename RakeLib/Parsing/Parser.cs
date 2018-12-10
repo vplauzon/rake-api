@@ -12,7 +12,7 @@ namespace RakeLib.Parsing
     internal class Parser
     {
         private static readonly string _grammar = GetResource("Grammar.pas");
-        private static readonly ParsedCompute[] _emptyComputeArray = new ParsedCompute[0];
+        private static readonly ParsedExpression[] _emptyComputeArray = new ParsedExpression[0];
 
         private readonly ParserClient _parserClient;
 
@@ -25,13 +25,13 @@ namespace RakeLib.Parsing
             _parserClient = parserClient ?? throw new ArgumentNullException(nameof(parserClient));
         }
 
-        public async Task<ParsedCompute> ParseExpressionAsync(string expression)
+        public async Task<ParsedExpression> ParseExpressionAsync(string expression)
         {
             var result = await _parserClient.SingleParseAsync(_grammar, "expression", expression);
 
             if (result.IsMatch)
             {
-                return BuildExpression(result.RuleMatch);
+                return ParseExpression(result.RuleMatch);
             }
             else
             {
@@ -66,17 +66,17 @@ namespace RakeLib.Parsing
             var variables = from v in namedVariableResults
                             select KeyValuePair.Create(
                                 v.Key,
-                                BuildExpression(v.Value.RuleMatch));
+                                ParseExpression(v.Value.RuleMatch));
             var outputs = from o in namedOutputResults
                           select KeyValuePair.Create(
                               o.Key,
-                              BuildExpression(o.Value.RuleMatch));
+                              ParseExpression(o.Value.RuleMatch));
 
             return new ParsedFunction
             {
                 Inputs = description.Inputs,
-                Variables = new Dictionary<string, ParsedCompute>(variables),
-                Outputs = new Dictionary<string, ParsedCompute>(outputs)
+                Variables = new Dictionary<string, ParsedExpression>(variables),
+                Outputs = new Dictionary<string, ParsedExpression>(outputs)
             };
         }
 
@@ -205,82 +205,90 @@ namespace RakeLib.Parsing
             }
         }
 
-        private ParsedCompute BuildExpression(RuleMatchResult ruleMatch)
+        private ParsedExpression ParseExpression(RuleMatchResult ruleMatch)
         {
-            var reference = BuildReference(ruleMatch.NamedChildren["ref"]);
-            var methodChildren = ruleMatch.NamedChildren["method"].Children;
+            var child = ruleMatch.NamedChildren.First();
+            var expressionType = child.Key;
+            var expression = child.Value;
 
-            if (methodChildren != null)
+            switch (expressionType)
             {
-                var methodInvoke = BuildMethodInvoke(methodChildren);
-
-                return new ParsedCompute
-                {
-                    Reference = reference,
-                    MethodInvoke = methodInvoke
-                };
-            }
-            else
-            {
-                return new ParsedCompute { Reference = reference };
+                case "prim":
+                    return new ParsedExpression { Primitive = ParsePrimitive(expression) };
+                case "prop":
+                    return new ParsedExpression { Property = ParseProperty(expression) };
+                case "meth":
+                    return new ParsedExpression { MethodInvoke = ParseMethodInvoke(expression) };
+                default:
+                    throw new NotSupportedException($"Primitive '{expressionType}'");
             }
         }
 
-        private ParsedMethodInvoke BuildMethodInvoke(IEnumerable<RuleMatchResult> invokeList)
+        private ParsedPrimitive ParsePrimitive(RuleMatchResult ruleMatch)
         {
-            if (invokeList.Any())
+            var child = ruleMatch.NamedChildren.First();
+            var primitiveType = child.Key;
+            var primitive = child.Value;
+
+            switch (primitiveType)
             {
-                var genericMethodInvoke = invokeList.First();
-                var name = genericMethodInvoke.NamedChildren["name"].Text;
-                var parameters = genericMethodInvoke.NamedChildren["params"];
-
-                if (parameters.Children != null)
-                {
-                    var genericParameterList = parameters.Children.First();
-
-                    return new ParsedMethodInvoke
-                    {
-                        IsProperty = false,
-                        Name = name,
-                        Parameters = BuildParameters(genericParameterList),
-                        //  Recursion
-                        Next = BuildMethodInvoke(invokeList.Skip(1))
-                    };
-                }
-                else
-                {
-                    return new ParsedMethodInvoke
-                    {
-                        IsProperty = true,
-                        Name = name,
-                        //  Recursion
-                        Next = BuildMethodInvoke(invokeList.Skip(1))
-                    };
-                }
-            }
-            else
-            {   //  End of recursion
-                return null;
+                case "int":
+                    return new ParsedPrimitive { Integer = int.Parse(primitive.Text) };
+                case "string":
+                    return new ParsedPrimitive { QuotedString = primitive.NamedChildren["s"].Text };
+                case "id":
+                    return new ParsedPrimitive { Identifier = primitive.Text };
+                default:
+                    throw new NotSupportedException($"Primitive '{primitiveType}'");
             }
         }
 
-        private ParsedCompute[] BuildParameters(RuleMatchResult genericParameterList)
+        private ParsedProperty ParseProperty(RuleMatchResult ruleMatch)
         {
-            if (genericParameterList.NamedChildren.Keys.First() == "empty")
+            var expressionResult = ruleMatch.NamedChildren["obj"];
+            var expression = ParseExpression(expressionResult);
+            var name = ruleMatch.NamedChildren["name"].Text;
+
+            return new ParsedProperty
+            {
+                Object = expression,
+                Name = name
+            };
+        }
+
+        private ParsedMethodInvoke ParseMethodInvoke(RuleMatchResult ruleMatch)
+        {
+            var expressionResult = ruleMatch.NamedChildren["obj"];
+            var expression = ParseExpression(expressionResult);
+            var name = ruleMatch.NamedChildren["name"].Text;
+            var paramsResult = ruleMatch.NamedChildren["params"];
+            var parameters = ParseParameters(paramsResult);
+
+            return new ParsedMethodInvoke
+            {
+                Object = expression,
+                Name = name,
+                Parameters = parameters
+            };
+        }
+
+        private ParsedExpression[] ParseParameters(RuleMatchResult ruleMatch)
+        {
+            if (ruleMatch.NamedChildren.Keys.First() == "empty")
             {
                 return _emptyComputeArray;
             }
             else
             {
-                var parameterList = genericParameterList.NamedChildren["paramList"];
+                var parameterList = ruleMatch.NamedChildren["paramList"];
                 var head = parameterList.NamedChildren["head"];
                 var tail = parameterList.NamedChildren["tail"];
-                var headExpression = BuildExpression(head);
+                var headExpression = ParseExpression(head);
 
                 if (tail.Children != null)
                 {
                     var tailExpressions = from match in tail.Children
-                                          select BuildExpression(match.NamedChildren["e"]);
+                                          select ParseExpression(match.NamedChildren["e"]);
                     var parameters = tailExpressions.Prepend(headExpression).ToArray();
 
                     return parameters;
@@ -289,25 +297,6 @@ namespace RakeLib.Parsing
                 {
                     return new[] { headExpression };
                 }
-            }
-        }
-
-        private ParsedReference BuildReference(RuleMatchResult ruleMatch)
-        {
-            var child = ruleMatch.NamedChildren.First();
-            var refType = child.Key;
-            var reference = child.Value;
-
-            switch (refType)
-            {
-                case "int":
-                    return new ParsedReference { Integer = int.Parse(reference.Text) };
-                case "string":
-                    return new ParsedReference { QuotedString = reference.NamedChildren["s"].Text };
-                case "id":
-                    return new ParsedReference { Identifier = reference.Text };
-                default:
-                    throw new NotSupportedException($"Reference '{refType}'");
             }
         }
     }

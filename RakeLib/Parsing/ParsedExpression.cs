@@ -4,9 +4,11 @@ using System.Text;
 
 namespace RakeLib.Parsing
 {
-    internal class ParsedCompute
+    internal class ParsedExpression
     {
-        public ParsedReference Reference { get; set; }
+        public ParsedPrimitive Primitive { get; set; }
+
+        public ParsedProperty Property { get; set; }
 
         public ParsedMethodInvoke MethodInvoke { get; set; }
     }

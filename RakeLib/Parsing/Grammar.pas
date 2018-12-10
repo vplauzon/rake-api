@@ -15,15 +15,13 @@ rule(interleave=false, children=false) letter = ("A".."Z") | ("a".."z");
 rule(interleave=false, children=false) underscore = "_";
 rule(interleave=false, children=false) identifier = (letter | underscore) (letter | underscore | integer)*;
 
-#	A reference is something that can readily be referenced
-#	Either a value or a variable reference
-rule reference = int:integer | string:quotedString | id:identifier;
-rule parameterList = "(" head:expression tail:("," e:expression)* ")";
+rule primitive = int:integer | string:quotedString | id:identifier;
+rule property = obj:expression "." name:identifier;
 rule emptyParameterList = "(" ")";
-rule genericParameterList = empty::emptyParameterList | paramList:parameterList;
-rule genericMethodInvoke = "." name:identifier params:genericParameterList?;
+rule nonEmptyParameterList = "(" head:expression tail:("," e:expression)* ")";
+rule parameterList = empty::emptyParameterList | nonEmpty:nonEmptyParameterList;
+rule methodInvoke = obj:expression "." name:identifier params:parameterList;
 
-#	An expression is a generic method call
-rule expression = ref:reference method:genericMethodInvoke*;
+rule(recursive=true) expression = prim:primitive | prop:property | meth:methodInvoke;
 
 rule main = expression;

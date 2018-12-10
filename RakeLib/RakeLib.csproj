@@ -16,12 +16,20 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="Compiler.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
     <None Remove="Grammar.pas" />
     <None Remove="Parsing\Grammar.pas" />
   </ItemGroup>
 
   <ItemGroup>
     <EmbeddedResource Include="Parsing\Grammar.pas" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="Compiler.cs" />
   </ItemGroup>
 
   <ItemGroup>

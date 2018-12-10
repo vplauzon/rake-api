@@ -101,6 +101,13 @@ namespace RakeLib
 
                 var reference = EnsureReference(parsedCompute);
 
+                while (parsedCompute.MethodInvoke != null && parsedCompute.MethodInvoke.Next != null)
+                {
+                    var compiledCompute =
+                        CompileImmediateCompute(reference, parsedCompute.MethodInvoke);
+                }
+
+
                 if (parsedCompute.MethodInvoke == null)
                 {
                     var compute = new NamedCompiledCompute
@@ -125,6 +132,13 @@ namespace RakeLib
                 _computeStack = _computeStack.Pop();
             }
 
+            private CompiledCompute CompileImmediateCompute(
+                CompiledReference reference,
+                ParsedMethodInvoke methodInvoke)
+            {
+                throw new NotImplementedException();
+            }
+
             private void AddCompiledCompute(NamedCompiledCompute compute)
             {
                 _compiledComputes = _compiledComputes.Add(compute);
@@ -139,14 +153,6 @@ namespace RakeLib
                     Integer = parsedCompute.Reference.Integer,
                     QuotedString = parsedCompute.Reference.QuotedString
                 };
-
-                EnsureIdentifier(reference);
-
-                return reference;
-            }
-
-            private void EnsureIdentifier(CompiledReference reference)
-            {
                 var identifier = reference.Identifier;
 
                 if (identifier != null
@@ -167,6 +173,8 @@ namespace RakeLib
                         throw new ComputeException($"Unknown identifier '{identifier}'");
                     }
                 }
+
+                return reference;
             }
         }
         #endregion

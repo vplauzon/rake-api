@@ -4,7 +4,7 @@ using System.Text;
 
 namespace RakeLib.Parsing
 {
-    internal class ParsedFunction : Function<ParsedCompute>
+    internal class ParsedFunction : Function<ParsedExpression>
     {
     }
 }
