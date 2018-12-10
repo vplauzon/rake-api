@@ -207,22 +207,28 @@ namespace RakeLib.Parsing
 
         private ParsedExpression ParseExpression(RuleMatchResult ruleMatch)
         {
-            var child = ruleMatch.NamedChildren.First();
-            var expressionType = child.Key;
-            var expression = child.Value;
+            var objectResult = ruleMatch.NamedChildren["obj"];
+            var objectExpression = GetObjectExpression(objectResult);
+            var invokes = ruleMatch.NamedChildren["meth"].Children;
+            var expression = ParseMethodPropertyInvokes(objectExpression, invokes);
 
-            switch (expressionType)
+            return expression;
+        }
+
+        private ParsedExpression GetObjectExpression(RuleMatchResult ruleMatch)
+        {
+            var child = ruleMatch.NamedChildren.First();
+            var objectType = child.Key;
+            var objectValue = child.Value;
+
+            switch (objectType)
             {
                 case "prim":
-                    return new ParsedExpression { Primitive = ParsePrimitive(expression) };
+                    return new ParsedExpression { Primitive = ParsePrimitive(objectValue) };
                 case "ref":
-                    return new ParsedExpression { Reference = expression.Text };
-                case "prop":
-                    return new ParsedExpression { Property = ParseProperty(expression) };
-                case "meth":
-                    return new ParsedExpression { MethodInvoke = ParseMethodInvoke(expression) };
+                    return new ParsedExpression { Reference = objectValue.Text };
                 default:
-                    throw new NotSupportedException($"Primitive '{expressionType}'");
+                    throw new NotSupportedException($"Object '{objectType}'");
             }
         }
 
@@ -243,60 +249,88 @@ namespace RakeLib.Parsing
             }
         }
 
-        private ParsedProperty ParseProperty(RuleMatchResult ruleMatch)
+        private ParsedExpression ParseMethodPropertyInvokes(
+            ParsedExpression objectExpression,
+            IEnumerable<RuleMatchResult> invokes)
         {
-            var expressionResult = ruleMatch.NamedChildren["obj"];
-            var expression = ParseExpression(expressionResult);
-            var name = ruleMatch.NamedChildren["name"].Text;
-
-            return new ParsedProperty
+            if (invokes == null || !invokes.Any())
             {
-                Object = expression,
-                Name = name
-            };
+                return objectExpression;
+            }
+            else
+            {
+                var invoke = invokes.First();
+                var invokeExpression = ParseOneMethodPropertyInvoke(objectExpression, invoke);
+
+                //  Recurse
+                return ParseMethodPropertyInvokes(invokeExpression, invokes.Skip(1));
+            }
         }
 
-        private ParsedMethodInvoke ParseMethodInvoke(RuleMatchResult ruleMatch)
+        private ParsedExpression ParseOneMethodPropertyInvoke(
+            ParsedExpression objectExpression,
+            RuleMatchResult ruleMatch)
         {
-            var expressionResult = ruleMatch.NamedChildren["obj"];
-            var expression = ParseExpression(expressionResult);
             var name = ruleMatch.NamedChildren["name"].Text;
-            var paramsResult = ruleMatch.NamedChildren["params"];
-            var parameters = ParseParameters(paramsResult);
+            var parameterListOption = ruleMatch.NamedChildren["params"];
 
-            return new ParsedMethodInvoke
+            if (parameterListOption.Children == null)
             {
-                Object = expression,
-                Name = name,
-                Parameters = parameters
-            };
+                return new ParsedExpression
+                {
+                    Property = new ParsedProperty { Object = objectExpression, Name = name }
+                };
+            }
+            else
+            {
+                var parameterList = parameterListOption.Children.First();
+                var paramType = parameterList.NamedChildren.First().Key;
+
+                switch (paramType)
+                {
+                    case "empty":
+                        return new ParsedExpression
+                        {
+                            MethodInvoke = new ParsedMethodInvoke
+                            {
+                                Object = objectExpression,
+                                Name = name,
+                                Parameters = _emptyComputeArray
+                            }
+                        };
+                    case "nonEmpty":
+                        return new ParsedExpression
+                        {
+                            MethodInvoke = new ParsedMethodInvoke
+                            {
+                                Object = objectExpression,
+                                Name = name,
+                                Parameters = ParseParameters(parameterList.NamedChildren.First().Value)
+                            }
+                        };
+                    default:
+                        throw new NotSupportedException($"Parameter type '{paramType}'");
+                }
+            }
         }
 
         private ParsedExpression[] ParseParameters(RuleMatchResult ruleMatch)
         {
-            if (ruleMatch.NamedChildren.Keys.First() == "empty")
+            var head = ruleMatch.NamedChildren["head"];
+            var tail = ruleMatch.NamedChildren["tail"];
+            var headExpression = ParseExpression(head);
+
+            if (tail.Children != null)
             {
-                return _emptyComputeArray;
+                var tailExpressions = from match in tail.Children
+                                      select ParseExpression(match.NamedChildren["e"]);
+                var parameters = tailExpressions.Prepend(headExpression).ToArray();
+
+                return parameters;
             }
             else
             {
-                var parameterList = ruleMatch.NamedChildren["paramList"];
-                var head = parameterList.NamedChildren["head"];
-                var tail = parameterList.NamedChildren["tail"];
-                var headExpression = ParseExpression(head);
-
-                if (tail.Children != null)
-                {
-                    var tailExpressions = from match in tail.Children
-                                          select ParseExpression(match.NamedChildren["e"]);
-                    var parameters = tailExpressions.Prepend(headExpression).ToArray();
-
-                    return parameters;
-                }
-                else
-                {
-                    return new[] { headExpression };
-                }
+                return new[] { headExpression };
             }
         }
     }
