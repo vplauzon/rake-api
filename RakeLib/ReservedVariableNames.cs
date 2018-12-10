@@ -7,7 +7,8 @@ namespace RakeLib
 {
     internal static class ReservedVariableNames
     {
-        public static IImmutableSet<string> List { get; } = ImmutableSortedSet<string>.Empty.
-            Add("util");
+        public static IImmutableSet<string> List { get; } = ImmutableSortedSet<string>.Empty
+            .Add("util")
+            .Add("functions");
     }
 }
