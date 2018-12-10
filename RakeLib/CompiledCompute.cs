@@ -6,15 +6,14 @@ namespace RakeLib
 {
     public class CompiledCompute
     {
-        //  Primitive
-        //  Input Ref
-        //  Compute Ref
-        //  Property
-        //  Method Invoke
-        public bool IsProperty { get; set; }
+        public CompiledPrimitive Primitive { get; set; }
 
-        public string Name { get; set; }
+        public string InputReference { get; set; }
 
-        public CompiledReference[] Parameters { get; set; }
+        public string NamedComputeReference { get; set; }
+
+        public CompiledProperty Property { get; set; }
+
+        public CompiledMethodInvoke MethodInvoke { get; set; }
     }
 }
