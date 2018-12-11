@@ -49,6 +49,8 @@ namespace RakeLib
                 foreach (var output in _outputs)
                 {
                     var compiledCompute = CompileExpression(output.Value);
+
+                    PushOutputCompute(output.Key, compiledCompute);
                 }
 
                 return new CompiledFunction
@@ -178,6 +180,11 @@ namespace RakeLib
             }
 
             private string PushIntermediaryCompute(CompiledCompute compiledObject)
+            {
+                throw new NotImplementedException();
+            }
+
+            private void PushOutputCompute(string key, CompiledCompute compiledCompute)
             {
                 throw new NotImplementedException();
             }

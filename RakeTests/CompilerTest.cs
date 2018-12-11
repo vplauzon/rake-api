@@ -18,7 +18,7 @@ namespace RakeTests
         {
             var description = new FunctionDescription
             {
-                Inputs = new[] { "url", "http://azure.com" },
+                Inputs = new[] { "url" },
                 Variables = new Dictionary<string, string>(),
                 Outputs = new Dictionary<string, string>()
                 {
