@@ -20,161 +20,181 @@ namespace RakeLib
                 .Add("content")
                 .Add("util");
 
-            private readonly string[] _inputs;
             private readonly IImmutableSet<string> _inputSet;
-            private readonly IDictionary<string, ParsedCompute> _variables;
-            private readonly IDictionary<string, ParsedCompute> _outputs;
-            private IImmutableStack<string> _computeStack = ImmutableStack<string>.Empty;
+            private readonly IImmutableDictionary<string, ParsedExpression> _variables;
+            private readonly IImmutableDictionary<string, ParsedExpression> _outputs;
+
+            private IImmutableSet<string> _variablesInProcessSet = ImmutableSortedSet<string>.Empty;
             private IImmutableList<NamedCompiledCompute> _compiledComputes =
                 ImmutableList<NamedCompiledCompute>.Empty;
-            private IImmutableSet<string> _compiledComputesIndex =
-                ImmutableSortedSet<string>.Empty;
+            //private IImmutableSet<string> _compiledComputesIndex = ImmutableSortedSet<string>.Empty;
             //private int _hiddenVariableIndex = 1;
 
             public CompilerStateMachine(ParsedFunction parsedFunction)
             {
-                _inputs = parsedFunction.Inputs;
                 _inputSet = ImmutableList<string>
                     .Empty
                     .AddRange(parsedFunction.Inputs)
                     .ToImmutableSortedSet();
-                _variables = ImmutableSortedDictionary<string, ParsedCompute>
+                _variables = ImmutableSortedDictionary<string, ParsedExpression>
                     .Empty
                     .AddRange(parsedFunction.Variables);
-                _outputs = ImmutableSortedDictionary<string, ParsedCompute>
+                _outputs = ImmutableSortedDictionary<string, ParsedExpression>
                     .Empty
                     .AddRange(parsedFunction.Outputs);
             }
 
             public CompiledFunction Compile()
             {
-                while (_outputs.Any())
+                foreach (var output in _outputs)
                 {
-                    CompileOutput(_outputs.Keys.First());
-                }
-
-                if (_variables.Any())
-                {
-                    throw new ComputeException(
-                        $"Variable '{_variables.Keys.First()}' isn't used in any output");
+                    var compiledCompute = CompileExpression(output.Value);
                 }
 
                 return new CompiledFunction
                 {
-                    Inputs = _inputs,
+                    InputNames = _inputSet.ToArray(),
                     Computes = _compiledComputes.ToArray()
                 };
             }
 
-            private void CompileOutput(string name)
+            private CompiledCompute CompileExpression(ParsedExpression parsedCompute)
             {
-                var parsedOutput = _outputs[name];
-
-                _outputs.Remove(name);
-
-                CompileCompute(name, parsedOutput, true, false);
-                _computeStack = _computeStack.Push(name);
-
-                throw new NotImplementedException();
-            }
-
-            private void CompileVariable(string name)
-            {
-                var parsedVariable = _variables[name];
-
-                _variables.Remove(name);
-
-                CompileCompute(name, parsedVariable, false, false);
-            }
-
-            private void CompileCompute(
-                string name,
-                ParsedCompute parsedCompute,
-                bool isOutput,
-                bool isHidden)
-            {
-                if (_computeStack.Contains(name))
+                if (parsedCompute.Primitive != null)
                 {
-                    throw new ComputeException($"Circular reference involving '{name}'");
+                    return CompilePrimitive(parsedCompute.Primitive);
                 }
-                _computeStack = _computeStack.Push(name);
-
-                var reference = EnsureReference(parsedCompute);
-
-                while (parsedCompute.MethodInvoke != null && parsedCompute.MethodInvoke.Next != null)
+                else if (parsedCompute.Reference != null)
                 {
-                    var compiledCompute =
-                        CompileImmediateCompute(reference, parsedCompute.MethodInvoke);
+                    return CompileReference(parsedCompute.Reference);
                 }
-
-
-                if (parsedCompute.MethodInvoke == null)
+                else if (parsedCompute.Property != null)
                 {
-                    var compute = new NamedCompiledCompute
-                    {
-                        Name = name,
-                        Compute = new CompiledCompute
-                        {
-                            Name = name,
-                            Parameters = new[] { reference },
-                            IsProperty = false
-                        },
-                        IsHidden = isHidden,
-                        IsOutput = isOutput
-                    };
-
-                    AddCompiledCompute(compute);
+                    return CompileProperty(parsedCompute.Property);
+                }
+                else if (parsedCompute.MethodInvoke != null)
+                {
+                    return CompileMethodInvoke(parsedCompute.MethodInvoke);
                 }
                 else
                 {
-                    throw new NotImplementedException();
+                    throw new NotSupportedException("Parsed Expression is empty");
                 }
-                _computeStack = _computeStack.Pop();
             }
 
-            private CompiledCompute CompileImmediateCompute(
-                CompiledReference reference,
-                ParsedMethodInvoke methodInvoke)
+            private CompiledCompute CompilePrimitive(ParsedPrimitive primitive)
+            {
+                return new CompiledCompute
+                {
+                    Primitive = new CompiledPrimitive
+                    {
+                        Integer = primitive.Integer,
+                        QuotedString = primitive.QuotedString
+                    }
+                };
+            }
+
+            private CompiledCompute CompileReference(string reference)
+            {
+                if (_inputSet.Contains(reference))
+                {
+                    return new CompiledCompute
+                    {
+                        InputReference = reference
+                    };
+                }
+                else if (_variables.ContainsKey(reference))
+                {
+                    EnsureVariable(reference);
+
+                    return new CompiledCompute
+                    {
+                        NamedComputeReference = reference
+                    };
+                }
+                else
+                {
+                    throw new ComputeException($"Referenced field '{reference}' isn't a declared input or variable");
+                }
+            }
+
+            private CompiledCompute CompileProperty(ParsedProperty property)
+            {
+                var compiledObject = CompileExpression(property.Object);
+                var objectReference = PushIntermediaryCompute(compiledObject);
+
+                return new CompiledCompute
+                {
+                    Property = new CompiledProperty
+                    {
+                        Name = property.Name,
+                        ObjectReference = objectReference
+                    }
+                };
+            }
+
+            private CompiledCompute CompileMethodInvoke(ParsedMethodInvoke methodInvoke)
+            {
+                var compiledObject = CompileExpression(methodInvoke.Object);
+                var objectReference = PushIntermediaryCompute(compiledObject);
+                var parameterReferences = (from p in methodInvoke.Parameters
+                                           let compiled = CompileExpression(p)
+                                           select PushIntermediaryCompute(compiled)).ToArray();
+
+                return new CompiledCompute
+                {
+                    MethodInvoke = new CompiledMethodInvoke
+                    {
+                        Name = methodInvoke.Name,
+                        ObjectReference = objectReference,
+                        Parameters = parameterReferences
+                    }
+                };
+            }
+
+            private void EnsureVariable(string name)
+            {
+                if (!IsVariableComputed(name))
+                {
+                    if (_variablesInProcessSet.Contains(name))
+                    {
+                        throw new ComputeException($"Circular reference with variable '{name}'");
+                    }
+                    else
+                    {
+                        StartVariableProcess(name);
+
+                        var compiledVariable = CompileExpression(_variables[name]);
+
+                        PushVariableCompute(name, compiledVariable);
+                        StopVariableProcess(name);
+                    }
+                }
+            }
+
+            private void PushVariableCompute(string name, CompiledCompute compiledVariable)
             {
                 throw new NotImplementedException();
             }
 
-            private void AddCompiledCompute(NamedCompiledCompute compute)
+            private string PushIntermediaryCompute(CompiledCompute compiledObject)
             {
-                _compiledComputes = _compiledComputes.Add(compute);
-                _compiledComputesIndex = _compiledComputesIndex.Add(compute.Name);
+                throw new NotImplementedException();
             }
 
-            private CompiledReference EnsureReference(ParsedCompute parsedCompute)
+            private void StartVariableProcess(string name)
             {
-                var reference = new CompiledReference
-                {
-                    Identifier = parsedCompute.Reference.Identifier,
-                    Integer = parsedCompute.Reference.Integer,
-                    QuotedString = parsedCompute.Reference.QuotedString
-                };
-                var identifier = reference.Identifier;
+                _variablesInProcessSet = _variablesInProcessSet.Add(name);
+            }
 
-                if (identifier != null
-                    && !_compiledComputesIndex.Contains(identifier)
-                    && !_inputSet.Contains(identifier)
-                    && !_predefinedCompute.Contains(identifier))
-                {
-                    if (_variables.ContainsKey(identifier))
-                    {
-                        CompileVariable(identifier);
-                    }
-                    else if (_outputs.ContainsKey(identifier))
-                    {
-                        CompileOutput(identifier);
-                    }
-                    else
-                    {
-                        throw new ComputeException($"Unknown identifier '{identifier}'");
-                    }
-                }
+            private void StopVariableProcess(string name)
+            {
+                _variablesInProcessSet = _variablesInProcessSet.Remove(name);
+            }
 
-                return reference;
+            private bool IsVariableComputed(string name)
+            {
+                throw new NotImplementedException();
             }
         }
         #endregion

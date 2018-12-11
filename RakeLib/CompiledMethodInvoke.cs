@@ -6,7 +6,7 @@ namespace RakeLib
 {
     public class CompiledMethodInvoke
     {
-        public string NamedComputeReference { get; set; }
+        public string ObjectReference { get; set; }
 
         public string Name { get; set; }
 
