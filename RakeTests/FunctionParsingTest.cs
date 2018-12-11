@@ -27,13 +27,10 @@ namespace RakeTests
                     {"date", "content.xpath(\"date\")" }
                 }
             };
-            var compiler = new Parser();
-            var compiled = await compiler.ParseFunctionAsync(description);
+            var parser = new Parser();
+            var parsed = await parser.ParseFunctionAsync(description);
 
-            Assert.IsNotNull(compiled);
-            Assert.AreEqual(2, compiled.Inputs.Length, "Inputs");
-            Assert.AreEqual(2, compiled.Variables.Count, "Variables");
-            Assert.AreEqual(2, compiled.Outputs.Count, "Outputs");
+            AssertSameDimensions(description, parsed);
         }
 
         [TestMethod]
@@ -49,8 +46,10 @@ namespace RakeTests
                     {"content", "content.xpath(\"div\")" }
                 }
             };
-            var compiler = new Parser();
-            var compiled = await compiler.ParseFunctionAsync(description);
+            var parser = new Parser();
+            var parsed = await parser.ParseFunctionAsync(description);
+
+            AssertSameDimensions(description, parsed);
         }
 
         [TestMethod]
@@ -69,8 +68,10 @@ namespace RakeTests
                     {"content", "content.xpath(\"div\")" }
                 }
             };
-            var compiler = new Parser();
-            var compiled = await compiler.ParseFunctionAsync(description);
+            var parser = new Parser();
+            var parsed = await parser.ParseFunctionAsync(description);
+
+            AssertSameDimensions(description, parsed);
         }
 
         [TestMethod]
@@ -89,8 +90,10 @@ namespace RakeTests
                     {"a", "content.xpath(\"div\")" }
                 }
             };
-            var compiler = new Parser();
-            var compiled = await compiler.ParseFunctionAsync(description);
+            var parser = new Parser();
+            var parsed = await parser.ParseFunctionAsync(description);
+
+            AssertSameDimensions(description, parsed);
         }
 
         [TestMethod]
@@ -109,8 +112,10 @@ namespace RakeTests
                     {"url", "content.xpath(\"div\")" }
                 }
             };
-            var compiler = new Parser();
-            var compiled = await compiler.ParseFunctionAsync(description);
+            var parser = new Parser();
+            var parsed = await parser.ParseFunctionAsync(description);
+
+            AssertSameDimensions(description, parsed);
         }
 
         [TestMethod]
@@ -129,8 +134,18 @@ namespace RakeTests
                     {"content", "content.xpath(\"div\")" }
                 }
             };
-            var compiler = new Parser();
-            var compiled = await compiler.ParseFunctionAsync(description);
+            var parser = new Parser();
+            var parsed = await parser.ParseFunctionAsync(description);
+
+            AssertSameDimensions(description, parsed);
+        }
+
+        private static void AssertSameDimensions(FunctionDescription description, ParsedFunction parsed)
+        {
+            Assert.IsNotNull(parsed);
+            Assert.AreEqual(description.Inputs.Length, parsed.Inputs.Length, "Inputs");
+            Assert.AreEqual(description.Variables.Count, parsed.Variables.Count, "Variables");
+            Assert.AreEqual(description.Outputs.Count, parsed.Outputs.Count, "Outputs");
         }
     }
 }
