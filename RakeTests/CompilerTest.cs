@@ -203,5 +203,52 @@ namespace RakeTests
             Assert.AreEqual(description.Inputs.Length, compiled.InputNames.Length, "Inputs");
             Assert.AreEqual(3, compiled.Computes.Length, "Computes");
         }
+
+        [TestMethod]
+        public async Task ResolveVariableDependency()
+        {
+            var description = new FunctionDescription
+            {
+                Inputs = new[] { "url" },
+                Variables = new Dictionary<string, string>()
+                {
+                    {"var1", "var2.getValue(3)" },
+                    {"var3", "url.getlast(var1)" },
+                    {"var2", "url.first" }
+                },
+                Outputs = new Dictionary<string, string>()
+                {
+                    {"outThere", "url.crunch(var3)" }
+                }
+            };
+            var compiler = new Compiler();
+            var compiled = await compiler.CompileAsync(description);
+
+            Assert.IsNotNull(compiled);
+        }
+
+        [ExpectedException(typeof(ComputeException))]
+        [TestMethod]
+        public async Task CircularDependency()
+        {
+            var description = new FunctionDescription
+            {
+                Inputs = new[] { "url" },
+                Variables = new Dictionary<string, string>()
+                {
+                    {"var1", "var3.minus(42)" },
+                    {"var2", "var1.plus(5)" },
+                    {"var3", "var2.times(var1)" }
+                },
+                Outputs = new Dictionary<string, string>()
+                {
+                    {"outThere", "url.crunch(var3)" }
+                }
+            };
+            var compiler = new Compiler();
+            var compiled = await compiler.CompileAsync(description);
+
+            Assert.IsNotNull(compiled);
+        }
     }
 }
