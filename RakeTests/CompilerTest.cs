@@ -102,5 +102,106 @@ namespace RakeTests
             Assert.AreEqual(description.Inputs.Length, compiled.InputNames.Length, "Inputs");
             Assert.AreEqual(3, compiled.Computes.Length, "Computes");
         }
+
+        [TestMethod]
+        public async Task Property()
+        {
+            var description = new FunctionDescription
+            {
+                Inputs = new[] { "url" },
+                Variables = new Dictionary<string, string>(),
+                Outputs = new Dictionary<string, string>()
+                {
+                    {"outThere", "url.length" },
+                }
+            };
+            var compiler = new Compiler();
+            var compiled = await compiler.CompileAsync(description);
+
+            Assert.IsNotNull(compiled);
+            Assert.AreEqual(description.Inputs.Length, compiled.InputNames.Length, "Inputs");
+            Assert.AreEqual(2, compiled.Computes.Length, "Computes");
+        }
+
+        [TestMethod]
+        public async Task ChainedProperty()
+        {
+            var description = new FunctionDescription
+            {
+                Inputs = new[] { "url" },
+                Variables = new Dictionary<string, string>(),
+                Outputs = new Dictionary<string, string>()
+                {
+                    {"outThere", "url.length.hash" },
+                }
+            };
+            var compiler = new Compiler();
+            var compiled = await compiler.CompileAsync(description);
+
+            Assert.IsNotNull(compiled);
+            Assert.AreEqual(description.Inputs.Length, compiled.InputNames.Length, "Inputs");
+            Assert.AreEqual(3, compiled.Computes.Length, "Computes");
+        }
+
+        [TestMethod]
+        public async Task ChainedPropertiesWithReuse()
+        {
+            var description = new FunctionDescription
+            {
+                Inputs = new[] { "url" },
+                Variables = new Dictionary<string, string>(),
+                Outputs = new Dictionary<string, string>()
+                {
+                    {"outThere", "url.length.hash" },
+                    {"outThere2", "url.length.hash2" }
+                }
+            };
+            var compiler = new Compiler();
+            var compiled = await compiler.CompileAsync(description);
+
+            Assert.IsNotNull(compiled);
+            Assert.AreEqual(description.Inputs.Length, compiled.InputNames.Length, "Inputs");
+            Assert.AreEqual(4, compiled.Computes.Length, "Computes");
+        }
+
+        [TestMethod]
+        public async Task EmptyParamMethodInvoke()
+        {
+            var description = new FunctionDescription
+            {
+                Inputs = new[] { "url" },
+                Variables = new Dictionary<string, string>(),
+                Outputs = new Dictionary<string, string>()
+                {
+                    {"outThere", "url.crunch()" },
+                }
+            };
+            var compiler = new Compiler();
+            var compiled = await compiler.CompileAsync(description);
+
+            Assert.IsNotNull(compiled);
+            Assert.AreEqual(description.Inputs.Length, compiled.InputNames.Length, "Inputs");
+            Assert.AreEqual(2, compiled.Computes.Length, "Computes");
+        }
+
+        [TestMethod]
+        public async Task OneParamMethodInvoke()
+        {
+            var description = new FunctionDescription
+            {
+                Inputs = new[] { "url" },
+                Variables = new Dictionary<string, string>(),
+                Outputs = new Dictionary<string, string>()
+                {
+                    {"outThere", "url.crunch(3)" },
+                }
+            };
+            var compiler = new Compiler();
+            var compiled = await compiler.CompileAsync(description);
+
+            Assert.IsNotNull(compiled);
+            Assert.AreEqual(description.Inputs.Length, compiled.InputNames.Length, "Inputs");
+            Assert.AreEqual(3, compiled.Computes.Length, "Computes");
+        }
     }
 }
