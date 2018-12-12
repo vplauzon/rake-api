@@ -13,13 +13,6 @@ namespace RakeLib
         #region Inner Types
         private class CompilerStateMachine
         {
-            private static readonly IImmutableSet<string> _predefinedCompute =
-                ImmutableSortedSet<string>
-                .Empty
-                .Add("url")
-                .Add("content")
-                .Add("util");
-
             private readonly IImmutableSet<string> _inputSet;
             private readonly IImmutableDictionary<string, ParsedExpression> _variables;
             private readonly IImmutableDictionary<string, ParsedExpression> _outputs;
@@ -27,8 +20,9 @@ namespace RakeLib
             private IImmutableSet<string> _variablesInProcessSet = ImmutableSortedSet<string>.Empty;
             private IImmutableList<NamedCompiledCompute> _compiledComputes =
                 ImmutableList<NamedCompiledCompute>.Empty;
-            //private IImmutableSet<string> _compiledComputesIndex = ImmutableSortedSet<string>.Empty;
-            //private int _hiddenVariableIndex = 1;
+            private IImmutableDictionary<CompiledCompute, string> _computeToNameMap =
+                ImmutableDictionary<CompiledCompute, string>.Empty;
+            private int _intermediaryVariableIndex = 1;
 
             public CompilerStateMachine(ParsedFunction parsedFunction)
             {
@@ -176,17 +170,84 @@ namespace RakeLib
 
             private void PushVariableCompute(string name, CompiledCompute compiledVariable)
             {
-                throw new NotImplementedException();
+                var existingComputeReference = FindCompiledComputeName(compiledVariable);
+
+                if (existingComputeReference != null)
+                {
+                    compiledVariable = new CompiledCompute
+                    {
+                        NamedComputeReference = existingComputeReference
+                    };
+                }
+
+                PushNamedCompute(new NamedCompiledCompute
+                {
+                    Name = name,
+                    Compute = compiledVariable,
+                    IsDeclaredVariable = true,
+                    IsExecutionTimeInjected = false,
+                    IsOutput = false
+                });
             }
 
             private string PushIntermediaryCompute(CompiledCompute compiledObject)
             {
-                throw new NotImplementedException();
+                var existingComputeReference = FindCompiledComputeName(compiledObject);
+
+                if (existingComputeReference != null)
+                {
+                    return existingComputeReference;
+                }
+                else
+                {
+                    var name = "$" + (_intermediaryVariableIndex++).ToString();
+
+                    PushNamedCompute(new NamedCompiledCompute
+                    {
+                        Name = name,
+                        Compute = compiledObject,
+                        IsDeclaredVariable = false,
+                        IsExecutionTimeInjected = false,
+                        IsOutput = false
+                    });
+
+                    return name;
+                }
             }
 
-            private void PushOutputCompute(string key, CompiledCompute compiledCompute)
+            private void PushOutputCompute(string name, CompiledCompute outputCompute)
             {
-                throw new NotImplementedException();
+                var existingComputeReference = FindCompiledComputeName(outputCompute);
+
+                if (existingComputeReference != null)
+                {
+                    outputCompute = new CompiledCompute
+                    {
+                        NamedComputeReference = existingComputeReference
+                    };
+                }
+
+                PushNamedCompute(new NamedCompiledCompute
+                {
+                    Name = name,
+                    Compute = outputCompute,
+                    IsDeclaredVariable = false,
+                    IsExecutionTimeInjected = false,
+                    IsOutput = true
+                });
+            }
+
+            private void PushNamedCompute(NamedCompiledCompute namedCompiledCompute)
+            {
+                _compiledComputes = _compiledComputes.Add(namedCompiledCompute);
+                _computeToNameMap = _computeToNameMap.Add(namedCompiledCompute.Compute, namedCompiledCompute.Name);
+            }
+
+            private string FindCompiledComputeName(CompiledCompute compiledCompute)
+            {
+                _computeToNameMap.TryGetValue(compiledCompute, out string name);
+
+                return name;
             }
 
             private void StartVariableProcess(string name)

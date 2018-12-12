@@ -14,7 +14,7 @@ namespace RakeTests
     public class CompilerTest
     {
         [TestMethod]
-        public async Task InputOutput()
+        public async Task InputToOutput()
         {
             var description = new FunctionDescription
             {
@@ -30,7 +30,7 @@ namespace RakeTests
 
             Assert.IsNotNull(compiled);
             Assert.AreEqual(description.Inputs.Length, compiled.InputNames.Length, "Inputs");
-            Assert.AreEqual(2, compiled.Computes, "Computes");
+            Assert.AreEqual(1, compiled.Computes.Length, "Computes");
         }
     }
 }
