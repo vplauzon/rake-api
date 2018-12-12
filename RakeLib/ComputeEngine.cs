@@ -16,6 +16,10 @@ namespace RakeLib
             private readonly IImmutableDictionary<string, string> _inputs;
             private readonly CompiledFunction _function;
 
+            private IImmutableDictionary<string, object> _computeResult;
+            private IImmutableDictionary<string, object> _variables;
+            private IImmutableDictionary<string, object> _outputs;
+
             public EngineStateMachine(
                 Quotas quotas,
                 IImmutableDictionary<string, string> inputs,
@@ -27,6 +31,26 @@ namespace RakeLib
             }
 
             public async Task<ComputeResult> ComputeAsync()
+            {
+                foreach (var function in _function.Computes)
+                {
+                    var result = await ComputeFunctionAsync(function);
+
+                    _computeResult = _computeResult.Add(function.Name, result);
+                    if (function.IsDeclaredVariable)
+                    {
+                        _variables = _variables.Add(function.Name, result);
+                    }
+                    if (function.IsOutput)
+                    {
+                        _outputs = _outputs.Add(function.Name, result);
+                    }
+                }
+
+                return new ComputeResult(_variables, _outputs);
+            }
+
+            private async Task<object> ComputeFunctionAsync(NamedCompiledCompute function)
             {
                 await Task.CompletedTask;
 
