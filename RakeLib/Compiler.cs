@@ -18,6 +18,7 @@ namespace RakeLib
             private readonly IImmutableDictionary<string, ParsedExpression> _outputs;
 
             private IImmutableSet<string> _variablesInProcessSet = ImmutableSortedSet<string>.Empty;
+            private IImmutableSet<string> _variablesProcessedSet = ImmutableSortedSet<string>.Empty;
             private IImmutableList<NamedCompiledCompute> _compiledComputes =
                 ImmutableList<NamedCompiledCompute>.Empty;
             private IImmutableDictionary<CompiledCompute, string> _computeToNameMap =
@@ -180,6 +181,7 @@ namespace RakeLib
                     };
                 }
 
+                _variablesProcessedSet = _variablesProcessedSet.Add(name);
                 PushNamedCompute(new NamedCompiledCompute
                 {
                     Name = name,
@@ -262,7 +264,7 @@ namespace RakeLib
 
             private bool IsVariableComputed(string name)
             {
-                throw new NotImplementedException();
+                return _variablesProcessedSet.Contains(name);
             }
         }
         #endregion

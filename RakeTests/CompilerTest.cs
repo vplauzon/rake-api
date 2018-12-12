@@ -32,5 +32,51 @@ namespace RakeTests
             Assert.AreEqual(description.Inputs.Length, compiled.InputNames.Length, "Inputs");
             Assert.AreEqual(1, compiled.Computes.Length, "Computes");
         }
+
+        [TestMethod]
+        public async Task InputToVariableInputToOutput()
+        {
+            var description = new FunctionDescription
+            {
+                Inputs = new[] { "url" },
+                Variables = new Dictionary<string, string>()
+                {
+                    {"copyUrl", "url" }
+                },
+                Outputs = new Dictionary<string, string>()
+                {
+                    {"outThere", "url" }
+                }
+            };
+            var compiler = new Compiler();
+            var compiled = await compiler.CompileAsync(description);
+
+            Assert.IsNotNull(compiled);
+            Assert.AreEqual(description.Inputs.Length, compiled.InputNames.Length, "Inputs");
+            Assert.AreEqual(1, compiled.Computes.Length, "Computes");
+        }
+
+        [TestMethod]
+        public async Task InputToVariableToOutput()
+        {
+            var description = new FunctionDescription
+            {
+                Inputs = new[] { "url" },
+                Variables = new Dictionary<string, string>()
+                {
+                    {"copyUrl", "url" }
+                },
+                Outputs = new Dictionary<string, string>()
+                {
+                    {"outThere", "copyUrl" }
+                }
+            };
+            var compiler = new Compiler();
+            var compiled = await compiler.CompileAsync(description);
+
+            Assert.IsNotNull(compiled);
+            Assert.AreEqual(description.Inputs.Length, compiled.InputNames.Length, "Inputs");
+            Assert.AreEqual(2, compiled.Computes.Length, "Computes");
+        }
     }
 }
