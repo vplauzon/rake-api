@@ -1,6 +1,7 @@
 ﻿using PasApiClient;
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -14,16 +15,17 @@ namespace RakeLib.Parsing
         private static readonly string _grammar = GetResource("Grammar.pas");
         private static readonly ParsedExpression[] _emptyComputeArray = new ParsedExpression[0];
 
-        private readonly ParserClient _parserClient;
+        private readonly ParserClient _parserClient =
+            ParserClient.CreateFromBaseUri(new Uri("http://pas-api.dev.vplauzon.com/"));
 
-        public Parser() : this(ParserClient.CreateFromBaseUri(new Uri("http://pas-api.dev.vplauzon.com/")))
+        public Parser(IEnumerable<string> predefinedVariables = null)
         {
+            PredefinedVariables = predefinedVariables == null
+                ? PredefinedVariableNames.List
+                : ImmutableList<string>.Empty.AddRange(predefinedVariables).ToImmutableSortedSet();
         }
 
-        public Parser(ParserClient parserClient)
-        {
-            _parserClient = parserClient ?? throw new ArgumentNullException(nameof(parserClient));
-        }
+        public IImmutableSet<string> PredefinedVariables { get; }
 
         public async Task<ParsedExpression> ParseExpressionAsync(string expression)
         {
@@ -114,10 +116,10 @@ namespace RakeLib.Parsing
             {
                 throw new ComputeException("Field names can only have alphanumeric characters and underscores");
             }
-            if (description.Variables.Keys.Any(i => ReservedVariableNames.List.Contains(i)))
+            if (description.Variables.Keys.Any(i => PredefinedVariables.Contains(i)))
             {
                 throw new ComputeException(
-                    $"Field names cannot use any of the reserved keywords:  {{{string.Join(", ", ReservedVariableNames.List)}}}");
+                    $"Field names cannot use any of the reserved keywords:  {{{string.Join(", ", PredefinedVariables)}}}");
             }
             var repeatedInput = (from g in description.Inputs.GroupBy(i => i)
                                  where g.Count() > 1
@@ -141,10 +143,10 @@ namespace RakeLib.Parsing
             {
                 throw new ComputeException("Field names can only have alphanumeric characters and underscores");
             }
-            if (description.Variables.Keys.Any(i => ReservedVariableNames.List.Contains(i)))
+            if (description.Variables.Keys.Any(i => PredefinedVariables.Contains(i)))
             {
                 throw new ComputeException(
-                    $"Field names cannot use any of the reserved keywords:  {{{string.Join(", ", ReservedVariableNames.List)}}}");
+                    $"Field names cannot use any of the reserved keywords:  {{{string.Join(", ", PredefinedVariables)}}}");
             }
 
             //  Checking outputs

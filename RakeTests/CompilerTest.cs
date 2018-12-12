@@ -250,5 +250,44 @@ namespace RakeTests
 
             Assert.IsNotNull(compiled);
         }
+
+        [ExpectedException(typeof(ComputeException))]
+        [TestMethod]
+        public async Task UndeclareField()
+        {
+            var description = new FunctionDescription
+            {
+                Inputs = new[] { "url" },
+                Variables = new Dictionary<string, string>(),
+                Outputs = new Dictionary<string, string>()
+                {
+                    {"outThere", "doesnotexist" }
+                }
+            };
+            var compiler = new Compiler();
+            var compiled = await compiler.CompileAsync(description);
+
+            Assert.IsNotNull(compiled);
+        }
+
+        [TestMethod]
+        public async Task PredefinedVariable()
+        {
+            var description = new FunctionDescription
+            {
+                Inputs = new[] { "url" },
+                Variables = new Dictionary<string, string>(),
+                Outputs = new Dictionary<string, string>()
+                {
+                    {"outThere", "util.hi(url, 3)" },
+                }
+            };
+            var compiler = new Compiler();
+            var compiled = await compiler.CompileAsync(description);
+
+            Assert.IsNotNull(compiled);
+            Assert.AreEqual(description.Inputs.Length, compiled.InputNames.Length, "Inputs");
+            Assert.AreEqual(5, compiled.Computes.Length, "Computes");
+        }
     }
 }

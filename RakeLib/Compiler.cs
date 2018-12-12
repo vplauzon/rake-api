@@ -16,6 +16,7 @@ namespace RakeLib
             private readonly IImmutableSet<string> _inputSet;
             private readonly IImmutableDictionary<string, ParsedExpression> _variables;
             private readonly IImmutableDictionary<string, ParsedExpression> _outputs;
+            private readonly IImmutableSet<string> _predefinedVariables;
 
             private IImmutableSet<string> _variablesInProcessSet = ImmutableSortedSet<string>.Empty;
             private IImmutableSet<string> _variablesProcessedSet = ImmutableSortedSet<string>.Empty;
@@ -25,7 +26,7 @@ namespace RakeLib
                 ImmutableDictionary<CompiledCompute, string>.Empty;
             private int _intermediaryVariableIndex = 1;
 
-            public CompilerStateMachine(ParsedFunction parsedFunction)
+            public CompilerStateMachine(ParsedFunction parsedFunction, IImmutableSet<string> predefinedVariables)
             {
                 _inputSet = ImmutableList<string>
                     .Empty
@@ -37,6 +38,7 @@ namespace RakeLib
                 _outputs = ImmutableSortedDictionary<string, ParsedExpression>
                     .Empty
                     .AddRange(parsedFunction.Outputs);
+                _predefinedVariables = predefinedVariables;
             }
 
             public CompiledFunction Compile()
@@ -109,6 +111,15 @@ namespace RakeLib
                         NamedComputeReference = reference
                     };
                 }
+                else if (_predefinedVariables.Contains(reference))
+                {
+                    EnsurePredefinedVariable(reference);
+
+                    return new CompiledCompute
+                    {
+                        NamedComputeReference = reference
+                    };
+                }
                 else
                 {
                     throw new ComputeException($"Referenced field '{reference}' isn't a declared input or variable");
@@ -167,6 +178,19 @@ namespace RakeLib
                         StopVariableProcess(name);
                     }
                 }
+            }
+
+            private void EnsurePredefinedVariable(string name)
+            {
+                if (!IsVariableComputed(name))
+                {
+                    PushPredefinedCompute(name);
+                }
+            }
+
+            private bool IsVariableComputed(string name)
+            {
+                return _variablesProcessedSet.Contains(name);
             }
 
             private void PushVariableCompute(string name, CompiledCompute compiledVariable)
@@ -239,10 +263,25 @@ namespace RakeLib
                 });
             }
 
+            private void PushPredefinedCompute(string name)
+            {
+                PushNamedCompute(new NamedCompiledCompute
+                {
+                    Name = name,
+                    Compute = null,
+                    IsDeclaredVariable = false,
+                    IsExecutionTimeInjected = true,
+                    IsOutput = false
+                });
+            }
+
             private void PushNamedCompute(NamedCompiledCompute namedCompiledCompute)
             {
                 _compiledComputes = _compiledComputes.Add(namedCompiledCompute);
-                _computeToNameMap = _computeToNameMap.Add(namedCompiledCompute.Compute, namedCompiledCompute.Name);
+                if (namedCompiledCompute.Compute != null)
+                {
+                    _computeToNameMap = _computeToNameMap.Add(namedCompiledCompute.Compute, namedCompiledCompute.Name);
+                }
             }
 
             private string FindCompiledComputeName(CompiledCompute compiledCompute)
@@ -261,20 +300,20 @@ namespace RakeLib
             {
                 _variablesInProcessSet = _variablesInProcessSet.Remove(name);
             }
-
-            private bool IsVariableComputed(string name)
-            {
-                return _variablesProcessedSet.Contains(name);
-            }
         }
         #endregion
 
-        private readonly Parser _parser = new Parser();
+        private readonly Parser _parser;
+
+        public Compiler(IEnumerable<string> predefinedVariables = null)
+        {
+            _parser = new Parser(predefinedVariables);
+        }
 
         public async Task<CompiledFunction> CompileAsync(FunctionDescription description)
         {
             var parsed = await _parser.ParseFunctionAsync(description);
-            var stateMachine = new CompilerStateMachine(parsed);
+            var stateMachine = new CompilerStateMachine(parsed, _parser.PredefinedVariables);
             var compiledFunction = stateMachine.Compile();
 
             return compiledFunction;
