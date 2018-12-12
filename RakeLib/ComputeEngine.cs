@@ -9,17 +9,42 @@ namespace RakeLib
 {
     public class ComputeEngine
     {
-        public ComputeEngine(Quotas quotas)
+        #region Inner Types
+        private class EngineStateMachine
         {
-            if (quotas == null)
+            private readonly Quotas _quotas;
+            private readonly IImmutableDictionary<string, string> _inputs;
+            private readonly CompiledFunction _function;
+
+            public EngineStateMachine(
+                Quotas quotas,
+                IImmutableDictionary<string, string> inputs,
+                CompiledFunction function)
             {
-                throw new ArgumentNullException(nameof(quotas));
+                _quotas = quotas;
+                _inputs = inputs;
+                _function = function;
+            }
+
+            public async Task<ComputeResult> ComputeAsync()
+            {
+                await Task.CompletedTask;
+
+                throw new NotImplementedException();
             }
         }
+        #endregion
 
-        public async Task<IImmutableDictionary<string, object>> ComputeAsync(
-            IDictionary<string, string> inputs,
-            ExecutableFunction function)
+        private readonly Quotas _quotas;
+
+        public ComputeEngine(Quotas quotas)
+        {
+            _quotas = quotas ?? throw new ArgumentNullException(nameof(quotas));
+        }
+
+        public async Task<ComputeResult> ComputeAsync(
+            IImmutableDictionary<string, string> inputs,
+            CompiledFunction function)
         {
             if (inputs == null)
             {
@@ -29,32 +54,19 @@ namespace RakeLib
             {
                 throw new ArgumentNullException(nameof(function));
             }
-            ValidateInputs(inputs, function.Inputs);
+            ValidateInputs(inputs.Keys, function.InputNames);
 
-            var context = new ComputeContext(inputs);
-            var outputs = ImmutableDictionary<string, object>.Empty;
+            var stateMachine = new EngineStateMachine(_quotas, inputs, function);
+            var result = await stateMachine.ComputeAsync();
 
-            foreach (var variable in function.Variables)
-            {
-                var value = await variable.Compute.ComputeAsync(context);
-
-                context = context.AddVariable(variable.Name, value);
-            }
-            foreach(var output in function.Outputs)
-            {
-                var value = await output.Value.ComputeAsync(context);
-
-                outputs.Add(output.Key, value);
-            }
-
-            return outputs;
+            return result;
         }
 
         private void ValidateInputs(
-            IDictionary<string, string> providedInputs,
-            IImmutableList<string> functionInputs)
+            IEnumerable<string> providedInputs,
+            IEnumerable<string> functionInputs)
         {
-            var overSpec = Enumerable.Except(providedInputs.Keys, functionInputs);
+            var overSpec = Enumerable.Except(providedInputs, functionInputs);
 
             if (overSpec.Any())
             {
@@ -64,7 +76,7 @@ namespace RakeLib
             }
             else
             {
-                var underSpec = Enumerable.Except(functionInputs, providedInputs.Keys);
+                var underSpec = Enumerable.Except(functionInputs, providedInputs);
 
                 if (underSpec.Any())
                 {
