@@ -15,5 +15,12 @@ namespace RakeLib
         public bool IsExecutionTimeInjected { get; set; }
 
         public CompiledCompute Compute { get; set; }
+
+        #region Object Methods
+        public override string ToString()
+        {
+            return $"{Name} = {Compute}";
+        }
+        #endregion
     }
 }

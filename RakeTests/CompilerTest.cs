@@ -100,7 +100,7 @@ namespace RakeTests
 
             Assert.IsNotNull(compiled);
             Assert.AreEqual(description.Inputs.Length, compiled.InputNames.Length, "Inputs");
-            Assert.AreEqual(2, compiled.Computes.Length, "Computes");
+            Assert.AreEqual(3, compiled.Computes.Length, "Computes");
         }
     }
 }
