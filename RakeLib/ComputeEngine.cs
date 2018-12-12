@@ -16,9 +16,9 @@ namespace RakeLib
             private readonly IImmutableDictionary<string, string> _inputs;
             private readonly CompiledFunction _function;
 
-            private IImmutableDictionary<string, object> _computeResult;
-            private IImmutableDictionary<string, object> _variables;
-            private IImmutableDictionary<string, object> _outputs;
+            private IImmutableDictionary<string, object> _computeResult = ImmutableDictionary<string, object>.Empty;
+            private IImmutableDictionary<string, object> _variables = ImmutableDictionary<string, object>.Empty;
+            private IImmutableDictionary<string, object> _outputs = ImmutableDictionary<string, object>.Empty;
 
             public EngineStateMachine(
                 Quotas quotas,
@@ -54,7 +54,60 @@ namespace RakeLib
             {
                 await Task.CompletedTask;
 
-                throw new NotImplementedException();
+                if (function.IsExecutionTimeInjected)
+                {
+                    throw new NotImplementedException();
+                }
+                else
+                {
+                    var compute = function.Compute;
+
+                    if (compute.Primitive != null)
+                    {
+                        return ComputePrimitive(compute.Primitive);
+                    }
+                    else if (compute.InputReference != null)
+                    {
+                        return ComputeInputReference(compute.InputReference);
+                    }
+                    else if (compute.NamedComputeReference != null)
+                    {
+                        throw new NotImplementedException();
+                    }
+                    else if (compute.Property != null)
+                    {
+                        throw new NotImplementedException();
+                    }
+                    else if (compute.MethodInvoke != null)
+                    {
+                        throw new NotImplementedException();
+                    }
+                    else
+                    {
+                        throw new NotImplementedException("Invalid compute");
+                    }
+                }
+            }
+
+            private object ComputePrimitive(CompiledPrimitive primitive)
+            {
+                if (primitive.Integer != null)
+                {
+                    return primitive.Integer.Value;
+                }
+                else if (primitive.QuotedString != null)
+                {
+                    return primitive.QuotedString;
+                }
+                else
+                {
+                    throw new NotImplementedException("Invalid primitive");
+                }
+            }
+
+            private string ComputeInputReference(string inputReference)
+            {
+                return _inputs[inputReference];
             }
         }
         #endregion

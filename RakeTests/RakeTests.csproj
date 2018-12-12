@@ -17,6 +17,10 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="EngineTest.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
     <None Remove="Functions\simple-web.html" />
     <None Remove="Functions\simple-xpath.yaml" />
   </ItemGroup>
@@ -24,6 +28,10 @@
   <ItemGroup>
     <EmbeddedResource Include="Functions\simple-web.html" />
     <EmbeddedResource Include="Functions\simple-xpath.yaml" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="EngineTest.cs" />
   </ItemGroup>
 
   <ItemGroup>
