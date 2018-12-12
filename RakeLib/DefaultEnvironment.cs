@@ -5,9 +5,9 @@ using System.Text;
 
 namespace RakeLib
 {
-    internal static class PredefinedVariableNames
+    internal static class DefaultEnvironment
     {
-        public static IImmutableSet<string> List { get; } = ImmutableSortedSet<string>.Empty
+        public static IImmutableSet<string> PredefinedVariables { get; } = ImmutableSortedSet<string>.Empty
             .Add("util")
             .Add("functions");
     }
