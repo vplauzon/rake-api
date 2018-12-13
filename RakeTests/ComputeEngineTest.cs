@@ -78,13 +78,35 @@ namespace RakeTests
             Assert.AreEqual(int.Parse(description.Variables.First().Value), result.Outputs.First().Value, "Outputs");
         }
 
+        [TestMethod]
+        public async Task PredefinedVariableToOutput()
+        {
+            var description = new FunctionDescription
+            {
+                Inputs = new[] { "url" },
+                Variables = new Dictionary<string, string>(),
+                Outputs = new Dictionary<string, string>()
+                {
+                    {"outThere", "truth" },
+                }
+            };
+            var inputs = ImmutableDictionary<string, string>.Empty.Add("url", "http://bing.com");
+            var predefinedVariables = ImmutableDictionary<string, object>.Empty.Add("truth", 42);
+            var result = await CompileAndComputeAsync(description, inputs, predefinedVariables);
+
+            Assert.AreEqual(0, result.Variables.Count, "Variables");
+            Assert.AreEqual(1, result.Outputs.Count, "Outputs");
+            Assert.AreEqual(predefinedVariables.First().Value, result.Outputs.First().Value, "Outputs");
+        }
+
         private static async Task<ComputeResult> CompileAndComputeAsync(
             FunctionDescription description,
-            IImmutableDictionary<string, string> inputs)
+            IImmutableDictionary<string, string> inputs,
+            IImmutableDictionary<string, object> predefinedVariables = null)
         {
-            var compiler = new Compiler();
+            var compiler = new Compiler(predefinedVariables == null ? null : predefinedVariables.Keys);
             var compiled = await compiler.CompileAsync(description);
-            var engine = new ComputeEngine(new Quotas());
+            var engine = new ComputeEngine(new Quotas(), predefinedVariables);
             var outputs = await engine.ComputeAsync(inputs, compiled);
 
             return outputs;

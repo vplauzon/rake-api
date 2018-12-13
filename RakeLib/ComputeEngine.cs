@@ -13,6 +13,7 @@ namespace RakeLib
         private class EngineStateMachine
         {
             private readonly Quotas _quotas;
+            private readonly IImmutableDictionary<string, object> _predefinedVariables;
             private readonly IImmutableDictionary<string, string> _inputs;
             private readonly CompiledFunction _function;
 
@@ -22,10 +23,12 @@ namespace RakeLib
 
             public EngineStateMachine(
                 Quotas quotas,
+                IImmutableDictionary<string, object> predefinedVariables,
                 IImmutableDictionary<string, string> inputs,
                 CompiledFunction function)
             {
                 _quotas = quotas;
+                _predefinedVariables = predefinedVariables;
                 _inputs = inputs;
                 _function = function;
             }
@@ -56,7 +59,7 @@ namespace RakeLib
 
                 if (function.IsExecutionTimeInjected)
                 {
-                    throw new NotImplementedException();
+                    return ComputePredefinedVariable(function.Name);
                 }
                 else
                 {
@@ -114,6 +117,18 @@ namespace RakeLib
             {
                 return _computeResult[namedComputeReference];
             }
+
+            private object ComputePredefinedVariable(string name)
+            {
+                if(_predefinedVariables.TryGetValue(name, out var value))
+                {
+                    return value;
+                }
+                else
+                {
+                    throw new ArgumentOutOfRangeException($"Predefined variable '{name}' isn't available at runtime");
+                }
+            }
         }
         #endregion
 
@@ -140,7 +155,7 @@ namespace RakeLib
             }
             ValidateInputs(inputs.Keys, function.InputNames);
 
-            var stateMachine = new EngineStateMachine(_quotas, inputs, function);
+            var stateMachine = new EngineStateMachine(_quotas, _predefinedVariables, inputs, function);
             var result = await stateMachine.ComputeAsync();
 
             return result;
