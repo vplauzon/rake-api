@@ -54,6 +54,30 @@ namespace RakeTests
             Assert.AreEqual(inputs.First().Value, result.Outputs.First().Value, "Value");
         }
 
+        [TestMethod]
+        public async Task VariableToOutput()
+        {
+            var description = new FunctionDescription
+            {
+                Inputs = new[] { "url" },
+                Variables = new Dictionary<string, string>()
+                {
+                    {"tmp", "42" },
+                },
+                Outputs = new Dictionary<string, string>()
+                {
+                    {"outThere", "tmp" },
+                }
+            };
+            var inputs = ImmutableDictionary<string, string>.Empty.Add("url", "http://bing.com");
+            var result = await CompileAndComputeAsync(description, inputs);
+
+            Assert.AreEqual(1, result.Variables.Count, "Variables");
+            Assert.AreEqual(1, result.Outputs.Count, "Outputs");
+            Assert.AreEqual(int.Parse(description.Variables.First().Value), result.Variables.First().Value, "Var");
+            Assert.AreEqual(int.Parse(description.Variables.First().Value), result.Outputs.First().Value, "Outputs");
+        }
+
         private static async Task<ComputeResult> CompileAndComputeAsync(
             FunctionDescription description,
             IImmutableDictionary<string, string> inputs)

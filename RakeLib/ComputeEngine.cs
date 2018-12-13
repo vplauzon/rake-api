@@ -72,7 +72,7 @@ namespace RakeLib
                     }
                     else if (compute.NamedComputeReference != null)
                     {
-                        throw new NotImplementedException();
+                        return ComputeNamedComputeReference(compute.NamedComputeReference);
                     }
                     else if (compute.Property != null)
                     {
@@ -108,6 +108,11 @@ namespace RakeLib
             private string ComputeInputReference(string inputReference)
             {
                 return _inputs[inputReference];
+            }
+
+            private object ComputeNamedComputeReference(string namedComputeReference)
+            {
+                return _computeResult[namedComputeReference];
             }
         }
         #endregion
