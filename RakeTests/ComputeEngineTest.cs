@@ -123,6 +123,7 @@ namespace RakeTests
                 }
             };
             var inputs = ImmutableDictionary<string, string>.Empty;
+            var methodSet = MethodSet.Empty.AddMethodsAndPropertiesByReflection(typeof(StringHelper));
             var result = await CompileAndComputeAsync(description, inputs);
 
             Assert.AreEqual(0, result.Variables.Count, "Variables");
