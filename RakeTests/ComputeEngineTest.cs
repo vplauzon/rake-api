@@ -12,6 +12,16 @@ namespace RakeTests
     [TestClass]
     public class ComputeEngineTest
     {
+        #region Inner types
+        private static class StringHelper
+        {
+            public static int LengthProperty(string s)
+            {
+                return s.Length;
+            }
+        }
+        #endregion
+
         [TestMethod]
         public async Task PrimitiveToOutput()
         {
@@ -92,21 +102,43 @@ namespace RakeTests
             };
             var inputs = ImmutableDictionary<string, string>.Empty.Add("url", "http://bing.com");
             var predefinedVariables = ImmutableDictionary<string, object>.Empty.Add("truth", 42);
-            var result = await CompileAndComputeAsync(description, inputs, predefinedVariables);
+            var result = await CompileAndComputeAsync(description, inputs, predefinedVariables: predefinedVariables);
 
             Assert.AreEqual(0, result.Variables.Count, "Variables");
             Assert.AreEqual(1, result.Outputs.Count, "Outputs");
             Assert.AreEqual(predefinedVariables.First().Value, result.Outputs.First().Value, "Outputs");
         }
 
+        [TestMethod]
+        public async Task Property()
+        {
+            var word = "hello";
+            var description = new FunctionDescription
+            {
+                Inputs = new string[0],
+                Variables = new Dictionary<string, string>(),
+                Outputs = new Dictionary<string, string>()
+                {
+                    {"outThere", $"\"{word}\".length" },
+                }
+            };
+            var inputs = ImmutableDictionary<string, string>.Empty;
+            var result = await CompileAndComputeAsync(description, inputs);
+
+            Assert.AreEqual(0, result.Variables.Count, "Variables");
+            Assert.AreEqual(1, result.Outputs.Count, "Outputs");
+            Assert.AreEqual(word.Length, result.Outputs.First().Value, "Outputs");
+        }
+
         private static async Task<ComputeResult> CompileAndComputeAsync(
             FunctionDescription description,
             IImmutableDictionary<string, string> inputs,
+            MethodSet methodSet = null,
             IImmutableDictionary<string, object> predefinedVariables = null)
         {
             var compiler = new Compiler(predefinedVariables == null ? null : predefinedVariables.Keys);
             var compiled = await compiler.CompileAsync(description);
-            var engine = new ComputeEngine(new Quotas(), predefinedVariables);
+            var engine = new ComputeEngine(new Quotas(), methodSet, predefinedVariables);
             var outputs = await engine.ComputeAsync(inputs, compiled);
 
             return outputs;

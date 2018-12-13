@@ -13,6 +13,7 @@ namespace RakeLib
         private class EngineStateMachine
         {
             private readonly Quotas _quotas;
+            private readonly MethodSet _methodSet;
             private readonly IImmutableDictionary<string, object> _predefinedVariables;
             private readonly IImmutableDictionary<string, string> _inputs;
             private readonly CompiledFunction _function;
@@ -23,11 +24,13 @@ namespace RakeLib
 
             public EngineStateMachine(
                 Quotas quotas,
+                MethodSet methodSet,
                 IImmutableDictionary<string, object> predefinedVariables,
                 IImmutableDictionary<string, string> inputs,
                 CompiledFunction function)
             {
                 _quotas = quotas;
+                _methodSet = methodSet;
                 _predefinedVariables = predefinedVariables;
                 _inputs = inputs;
                 _function = function;
@@ -79,7 +82,7 @@ namespace RakeLib
                     }
                     else if (compute.Property != null)
                     {
-                        throw new NotImplementedException();
+                        return await ComputePropertyAsync(compute.Property);
                     }
                     else if (compute.MethodInvoke != null)
                     {
@@ -118,9 +121,17 @@ namespace RakeLib
                 return _computeResult[namedComputeReference];
             }
 
+            private async Task<object> ComputePropertyAsync(CompiledProperty property)
+            {
+                var objectReference = _computeResult[property.ObjectReference];
+                var result = await _methodSet.ComputePropertyAsync(objectReference, property.Name);
+
+                return result;
+            }
+
             private object ComputePredefinedVariable(string name)
             {
-                if(_predefinedVariables.TryGetValue(name, out var value))
+                if (_predefinedVariables.TryGetValue(name, out var value))
                 {
                     return value;
                 }
@@ -133,11 +144,16 @@ namespace RakeLib
         #endregion
 
         private readonly Quotas _quotas;
+        private readonly MethodSet _methodSet;
         private readonly IImmutableDictionary<string, object> _predefinedVariables;
 
-        public ComputeEngine(Quotas quotas, IImmutableDictionary<string, object> predefinedVariables = null)
+        public ComputeEngine(
+            Quotas quotas,
+            MethodSet methodSet = null,
+            IImmutableDictionary<string, object> predefinedVariables = null)
         {
             _quotas = quotas ?? throw new ArgumentNullException(nameof(quotas));
+            _methodSet = methodSet ?? MethodSet.Empty;
             _predefinedVariables = predefinedVariables ?? DefaultEnvironment.PredefinedVariables;
         }
 
@@ -155,7 +171,7 @@ namespace RakeLib
             }
             ValidateInputs(inputs.Keys, function.InputNames);
 
-            var stateMachine = new EngineStateMachine(_quotas, _predefinedVariables, inputs, function);
+            var stateMachine = new EngineStateMachine(_quotas, _methodSet, _predefinedVariables, inputs, function);
             var result = await stateMachine.ComputeAsync();
 
             return result;
