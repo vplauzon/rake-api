@@ -118,10 +118,12 @@ namespace RakeLib
         #endregion
 
         private readonly Quotas _quotas;
+        private readonly IImmutableDictionary<string, object> _predefinedVariables;
 
-        public ComputeEngine(Quotas quotas)
+        public ComputeEngine(Quotas quotas, IImmutableDictionary<string, object> predefinedVariables = null)
         {
             _quotas = quotas ?? throw new ArgumentNullException(nameof(quotas));
+            _predefinedVariables = predefinedVariables ?? ImmutableDictionary<string, object>.Empty;
         }
 
         public async Task<ComputeResult> ComputeAsync(
