@@ -123,7 +123,7 @@ namespace RakeLib
         public ComputeEngine(Quotas quotas, IImmutableDictionary<string, object> predefinedVariables = null)
         {
             _quotas = quotas ?? throw new ArgumentNullException(nameof(quotas));
-            _predefinedVariables = predefinedVariables ?? ImmutableDictionary<string, object>.Empty;
+            _predefinedVariables = predefinedVariables ?? DefaultEnvironment.PredefinedVariables;
         }
 
         public async Task<ComputeResult> ComputeAsync(

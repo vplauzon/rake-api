@@ -5,7 +5,9 @@ using System.Text;
 
 namespace RakeLib
 {
-    internal static class DefaultEnvironment
+    public static class DefaultEnvironment
     {
+        public static IImmutableDictionary<string, object> PredefinedVariables =
+            ImmutableDictionary<string, object>.Empty;
     }
 }
