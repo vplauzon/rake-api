@@ -21,7 +21,7 @@ namespace RakeLib.Parsing
         public Parser(IEnumerable<string> predefinedVariables = null)
         {
             PredefinedVariables = predefinedVariables == null
-                ? DefaultEnvironment.PredefinedVariables
+                ? DefaultEnvironment.PredefinedVariableNames
                 : ImmutableList<string>.Empty.AddRange(predefinedVariables).ToImmutableSortedSet();
         }
 

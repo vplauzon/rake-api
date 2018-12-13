@@ -282,7 +282,7 @@ namespace RakeTests
                     {"outThere", "util.hi(url, 3)" },
                 }
             };
-            var compiler = new Compiler();
+            var compiler = new Compiler(new[] { "util" });
             var compiled = await compiler.CompileAsync(description);
 
             Assert.IsNotNull(compiled);
