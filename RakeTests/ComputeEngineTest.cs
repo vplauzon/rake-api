@@ -19,7 +19,10 @@ namespace RakeTests
             {
                 return s.Length;
             }
+        }
 
+        private static class StringHelper2
+        {
             public static Task<int> SlowProperty(string s)
             {
                 return Task.FromResult(42);
@@ -124,16 +127,20 @@ namespace RakeTests
                 Variables = new Dictionary<string, string>(),
                 Outputs = new Dictionary<string, string>()
                 {
-                    {"outThere", $"\"{word}\".length" },
+                    {"length", $"\"{word}\".length" },
+                    {"slow", $"\"{word}\".slow" }
                 }
             };
             var inputs = ImmutableDictionary<string, string>.Empty;
-            var methodSet = MethodSet.Empty.AddMethodsAndPropertiesByReflection(typeof(StringHelper));
+            var methodSet = MethodSet.Empty
+                .AddMethodsAndPropertiesByReflection(typeof(StringHelper))
+                .AddMethodsAndPropertiesByReflection(typeof(StringHelper2));
             var result = await CompileAndComputeAsync(description, inputs, methodSet: methodSet);
 
             Assert.AreEqual(0, result.Variables.Count, "Variables");
-            Assert.AreEqual(1, result.Outputs.Count, "Outputs");
-            Assert.AreEqual(word.Length, result.Outputs.First().Value, "Outputs");
+            Assert.AreEqual(2, result.Outputs.Count, "Outputs");
+            Assert.AreEqual(word.Length, result.Outputs["length"], "Outputs");
+            Assert.AreEqual(42, result.Outputs["slow"], "Outputs");
         }
 
         private static async Task<ComputeResult> CompileAndComputeAsync(

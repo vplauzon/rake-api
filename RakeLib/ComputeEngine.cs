@@ -125,8 +125,22 @@ namespace RakeLib
             {
                 var objectReference = _computeResult[property.ObjectReference];
                 var result = await _methodSet.ComputePropertyAsync(objectReference, property.Name);
+                var task = result as Task;
 
-                return result;
+                if (task != null)
+                {
+                    var resultInfo = task.GetType().GetProperty("Result").GetGetMethod();
+
+                    await task;
+
+                    var taskResult = resultInfo.Invoke(task, null);
+
+                    return taskResult;
+                }
+                else
+                {
+                    return result;
+                }
             }
 
             private object ComputePredefinedVariable(string name)
