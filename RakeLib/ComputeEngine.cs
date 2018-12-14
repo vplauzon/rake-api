@@ -86,7 +86,7 @@ namespace RakeLib
                     }
                     else if (compute.MethodInvoke != null)
                     {
-                        throw new NotImplementedException();
+                        return await ComputeMethodAsync(compute.MethodInvoke);
                     }
                     else
                     {
@@ -125,6 +125,22 @@ namespace RakeLib
             {
                 var objectReference = _computeResult[property.ObjectReference];
                 var result = await _methodSet.ComputePropertyAsync(objectReference, property.Name);
+
+                return await ComputeInvokeResult(result);
+            }
+
+            private async Task<object> ComputeMethodAsync(CompiledMethodInvoke methodInvoke)
+            {
+                var objectReference = _computeResult[methodInvoke.ObjectReference];
+                var parameters = from p in methodInvoke.Parameters
+                                 select _computeResult[p];
+                var result = await _methodSet.ComputeMethodAsync(objectReference, methodInvoke.Name, parameters);
+
+                return await ComputeInvokeResult(result);
+            }
+
+            private static async Task<object> ComputeInvokeResult(object result)
+            {
                 var task = result as Task;
 
                 if (task != null)

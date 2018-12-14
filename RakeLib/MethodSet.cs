@@ -135,7 +135,9 @@ namespace RakeLib
             if (methodInfo != null)
             {
                 var result = methodInfo.Invoke(null, new[] { target });
+
                 await Task.CompletedTask;
+
                 return result;
             }
             else
@@ -144,18 +146,31 @@ namespace RakeLib
             }
         }
 
-        public Task<object> ComputeMethodAsync(object target, string name, IEnumerable<object> parameters)
+        public async Task<object> ComputeMethodAsync(object target, string name, IEnumerable<object> parameters)
         {
-            throw new NotImplementedException();
+            var methodInfo = _methods.GetOperation(target.GetType(), name);
+
+            if (methodInfo != null)
+            {
+                if (methodInfo.GetParameters().Length - 1 == parameters.Count())
+                {
+                    var result = methodInfo.Invoke(null, parameters.Prepend(target).ToArray());
+
+                    await Task.CompletedTask;
+
+                    return result;
+                }
+                else
+                {
+                    throw new ComputeException(
+                        $"Method '{name}' has {methodInfo.GetParameters().Length - 1} parameters but {parameters.Count()} were provided");
+                }
+            }
+            else
+            {
+                throw new ComputeException($"Target object doesn't have a method '{name}'");
+            }
         }
         #endregion
-
-        private static void MergeDictionaries(
-            IImmutableDictionary<Type, IImmutableList<MethodInfo>> original,
-            IEnumerable<IGrouping<Type, MethodInfo>> addon)
-        {
-
-            throw new NotImplementedException();
-        }
     }
 }

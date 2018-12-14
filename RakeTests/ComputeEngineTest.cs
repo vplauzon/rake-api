@@ -28,6 +28,24 @@ namespace RakeTests
                 return Task.FromResult(42);
             }
         }
+
+        private static class IntHelper
+        {
+            public static int MirrorProperty(int a)
+            {
+                return a;
+            }
+
+            public static Task<string> ToText(int a)
+            {
+                return Task.FromResult(a.ToString());
+            }
+
+            public static int Add(int a, int b, int c)
+            {
+                return a + b + c;
+            }
+        }
         #endregion
 
         [TestMethod]
@@ -139,8 +157,35 @@ namespace RakeTests
 
             Assert.AreEqual(0, result.Variables.Count, "Variables");
             Assert.AreEqual(2, result.Outputs.Count, "Outputs");
-            Assert.AreEqual(word.Length, result.Outputs["length"], "Outputs");
-            Assert.AreEqual(42, result.Outputs["slow"], "Outputs");
+            Assert.AreEqual(word.Length, result.Outputs["length"], "length");
+            Assert.AreEqual(42, result.Outputs["slow"], "slow");
+        }
+
+        [TestMethod]
+        public async Task Method()
+        {
+            var number = 42;
+            var description = new FunctionDescription
+            {
+                Inputs = new string[0],
+                Variables = new Dictionary<string, string>(),
+                Outputs = new Dictionary<string, string>()
+                {
+                    {"text", $"{number}.toText()" },
+                    {"mirror", $"{number}.mirror" },
+                    {"add", $"{number}.add(5, 10)" }
+                }
+            };
+            var inputs = ImmutableDictionary<string, string>.Empty;
+            var methodSet = MethodSet.Empty
+                .AddMethodsAndPropertiesByReflection(typeof(IntHelper));
+            var result = await CompileAndComputeAsync(description, inputs, methodSet: methodSet);
+
+            Assert.AreEqual(0, result.Variables.Count, "Variables");
+            Assert.AreEqual(3, result.Outputs.Count, "Outputs");
+            Assert.AreEqual(number.ToString(), result.Outputs["text"], "text");
+            Assert.AreEqual(number, result.Outputs["mirror"], "mirror");
+            Assert.AreEqual(number + 15, result.Outputs["add"], "add");
         }
 
         private static async Task<ComputeResult> CompileAndComputeAsync(
