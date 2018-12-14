@@ -19,6 +19,11 @@ namespace RakeTests
             {
                 return s.Length;
             }
+
+            public static Task<int> SlowProperty(string s)
+            {
+                return Task.FromResult(42);
+            }
         }
         #endregion
 
@@ -124,7 +129,7 @@ namespace RakeTests
             };
             var inputs = ImmutableDictionary<string, string>.Empty;
             var methodSet = MethodSet.Empty.AddMethodsAndPropertiesByReflection(typeof(StringHelper));
-            var result = await CompileAndComputeAsync(description, inputs);
+            var result = await CompileAndComputeAsync(description, inputs, methodSet: methodSet);
 
             Assert.AreEqual(0, result.Variables.Count, "Variables");
             Assert.AreEqual(1, result.Outputs.Count, "Outputs");
